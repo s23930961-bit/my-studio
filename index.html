@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>社群貼文工作台</title>
+  <style>
+    :root {
+      --brand: #a3b1c6;
+      --brand-deep: #526177;
+      --brand-pale: #edf1f6;
+      --paper: #ffffff;
+      --canvas: #f5f6f8;
+      --ink: #263243;
+      --muted: #687586;
+      --line: #dbe1e9;
+      --focus: #294f88;
+      --success: #2e6653;
+      --warning: #975c22;
+      --overlay: rgba(38, 50, 67, .48);
+      --shadow: 0 14px 36px rgba(38, 50, 67, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      line-height: 1.55;
+    }
+    button, input, textarea { font: inherit; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .topbar {
+      min-height: 84px;
+      padding: 20px clamp(20px, 4vw, 64px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: var(--brand);
+      border-bottom: 1px solid var(--brand-deep);
+    }
+    .topbar h1 { margin: 0; font-size: clamp(1.25rem, 2vw, 1.75rem); letter-spacing: .02em; }
+    .topbar p { margin: 0; color: var(--ink); font-size: .86rem; }
+    .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .topbar-button, .material-button, .dialog-button {
+      padding: 9px 14px;
+      border: 1px solid var(--brand-deep);
+      border-radius: 9px;
+      background: var(--paper);
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .topbar-button:hover, .material-button:hover, .dialog-button:hover { background: var(--brand-pale); }
+    .progress-board {
+      width: min(100% - 32px, 1504px);
+      margin: 22px auto 0;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .progress-board h2 { flex: none; font-size: .9rem; }
+    .progress-steps { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .progress-steps li { padding: 5px 10px; border-radius: 999px; color: var(--muted); font-size: .78rem; }
+    .progress-steps li.is-current { background: var(--brand-pale); color: var(--ink); font-weight: 700; }
+    .progress-steps li.is-done { color: var(--success); }
+    .workspace {
+      width: min(100%, 1600px);
+      margin: 0 auto;
+      padding: 28px clamp(16px, 3vw, 48px) 44px;
+      display: grid;
+      grid-template-columns: minmax(280px, 1.04fr) minmax(340px, 1.25fr) minmax(280px, .9fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .panel {
+      min-width: 0;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .panel-head { padding: 22px 24px 18px; border-bottom: 1px solid var(--line); }
+    .eyebrow { margin: 0 0 4px; color: var(--brand-deep); font-size: .74rem; font-weight: 700; letter-spacing: .13em; }
+    h2 { margin: 0; font-size: 1.18rem; }
+    .panel-head p:last-child { margin: 7px 0 0; color: var(--muted); font-size: .86rem; }
+    .form-fields { display: grid; gap: 20px; padding: 22px 24px 28px; }
+    .material-actions { padding: 0 24px 28px; }
+    .material-button { width: 100%; background: var(--brand-pale); }
+    .material-button + .material-button { margin-top: 10px; }
+    .field { display: grid; gap: 7px; }
+    .field label { font-weight: 700; font-size: .9rem; }
+    .requirement { margin-left: 6px; color: var(--muted); font-size: .75rem; font-weight: 500; }
+    .field input, .field textarea, .post-editor {
+      width: 100%;
+      padding: 11px 13px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      resize: vertical;
+    }
+    .field input::placeholder, .field textarea::placeholder, .post-editor::placeholder { color: var(--muted); opacity: .9; }
+    .field textarea { min-height: 76px; }
+    .field:nth-child(7) textarea, .field:nth-child(8) textarea { background: var(--brand-pale); }
+    .editor-body { padding: 22px 24px 26px; }
+    .tabs { display: flex; gap: 8px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+    .tab {
+      min-width: 78px;
+      padding: 8px 18px;
+      border: 1px solid var(--brand-deep);
+      border-radius: 999px;
+      background: var(--brand-pale);
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] { background: var(--brand); }
+    .editor-label { display: block; margin: 22px 0 9px; font-weight: 700; }
+    .post-editor { min-height: 520px; line-height: 1.85; }
+    .helper { margin: 10px 0 0; color: var(--muted); font-size: .8rem; }
+    .actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .action {
+      padding: 9px 13px;
+      border: 1px solid var(--brand-deep);
+      border-radius: 9px;
+      background: var(--paper);
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .action:hover { background: var(--brand-pale); }
+    .action.primary { background: var(--brand); }
+    .action:disabled { cursor: not-allowed; opacity: .5; }
+    .action.secondary { display: none; }
+    .action.secondary.is-visible { display: inline-block; }
+    .feedback { margin: 13px 0 0; min-height: 1.5em; font-size: .85rem; white-space: pre-line; }
+    .feedback.success { color: var(--success); }
+    .feedback.warning { color: var(--warning); }
+    .preview-wrap { padding: 24px 20px 28px; display: flex; justify-content: center; }
+    .phone {
+      width: min(100%, 310px);
+      min-height: 575px;
+      padding: 11px;
+      border: 7px solid var(--ink);
+      border-radius: 36px;
+      background: var(--ink);
+      box-shadow: 0 18px 35px rgba(38, 50, 67, .18);
+    }
+    .phone-screen {
+      height: 100%;
+      min-height: 541px;
+      overflow: hidden;
+      border-radius: 22px;
+      background: var(--paper);
+    }
+    .phone-status { height: 20px; margin: 0 auto; width: 85px; border-radius: 0 0 12px 12px; background: var(--ink); }
+    .phone-profile { display: flex; align-items: center; gap: 9px; padding: 13px 14px; border-bottom: 1px solid var(--line); }
+    .avatar { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 50%; background: var(--brand); font-size: .72rem; font-weight: 800; }
+    .handle { font-size: .8rem; font-weight: 700; overflow-wrap: anywhere; }
+    .phone-art {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background: var(--brand-pale);
+      color: var(--brand-deep);
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    .phone-art.is-placeholder { color: var(--muted); font-size: .9rem; font-weight: 400; }
+    .phone-actions { padding: 14px; color: var(--brand-deep); letter-spacing: .5em; border-bottom: 1px solid var(--line); }
+    .phone-copy { padding: 15px; color: var(--muted); font-size: .8rem; }
+    .phone-copy strong { display: block; margin-bottom: 6px; color: var(--ink); }
+    .phone-caption { display: block; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+    .phone-caption.is-placeholder { color: var(--muted); }
+    .workspace-dialog {
+      width: min(720px, calc(100% - 32px));
+      max-height: min(85vh, 900px);
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+    }
+    .workspace-dialog::backdrop { background: var(--overlay); }
+    .dialog-head, .dialog-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .dialog-head h2 { margin: 0; }
+    .dialog-fields { display: grid; gap: 16px; margin-top: 20px; }
+    .dialog-fields label { display: grid; gap: 7px; font-weight: 700; }
+    .dialog-fields textarea, .instruction-text {
+      width: 100%;
+      min-height: 180px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.7;
+      resize: vertical;
+    }
+    .dialog-actions { justify-content: flex-end; margin-top: 18px; }
+    .dialog-message { margin: 12px 0 0; min-height: 1.4em; color: var(--muted); font-size: .86rem; }
+    .posts-dialog { width: min(1100px, calc(100% - 32px)); }
+    .saved-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 20px; max-height: 60vh; overflow-y: auto; }
+    .saved-column { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas); }
+    .saved-column h3 { margin: 0 0 12px; font-size: 1rem; }
+    .saved-column-list { display: grid; align-content: start; gap: 10px; }
+    .saved-item { display: grid; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+    .saved-item strong { display: block; overflow-wrap: anywhere; }
+    .saved-item time { display: block; color: var(--muted); font-size: .8rem; }
+    .saved-item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .saved-status { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); }
+    .instruction-text { min-height: 390px; margin-top: 18px; }
+    @media (max-width: 1100px) {
+      .workspace { grid-template-columns: minmax(270px, 1fr) minmax(330px, 1.15fr); }
+      .preview-panel { grid-column: 1 / -1; }
+      .phone { min-height: 530px; }
+      .phone-screen { min-height: 496px; }
+    }
+    @media (max-width: 700px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .topbar-right { width: 100%; justify-content: space-between; }
+      .progress-board { align-items: flex-start; flex-direction: column; gap: 8px; }
+      .workspace { grid-template-columns: 1fr; }
+      .preview-panel { grid-column: auto; }
+      .post-editor { min-height: 340px; }
+      .saved-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <h1 id="page-title"></h1>
+    <div class="topbar-right">
+      <p>素材卡・貼文內容・手機預覽</p>
+      <button class="topbar-button" id="open-posts" type="button">📁 我的貼文</button>
+      <button class="topbar-button" id="new-post" type="button">＋ 新的一篇</button>
+      <button class="topbar-button" id="open-settings" type="button">⚙ 設定</button>
+    </div>
+  </header>
+
+  <nav class="progress-board" aria-label="貼文製作進度">
+    <h2>進度看板</h2>
+    <ol class="progress-steps" id="progress-steps">
+      <li>草稿</li><li>等老闆確認</li><li>完成</li>
+    </ol>
+  </nav>
+
+  <main class="workspace">
+    <section class="panel" aria-labelledby="material-heading">
+      <div class="panel-head">
+        <p class="eyebrow">素材準備</p>
+        <h2 id="material-heading">素材卡</h2>
+        <p>先記下已確認的資訊，也標出不能公開的內容。</p>
+      </div>
+      <form class="form-fields" id="material-fields" autocomplete="off"></form>
+      <div class="material-actions">
+        <button class="material-button" id="build-instruction" type="button">🧩 組好指令</button>
+        <button class="material-button" id="save-post" type="button">💾 存檔</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="editor-heading">
+      <div class="panel-head">
+        <p class="eyebrow">文案編輯</p>
+        <h2 id="editor-heading">貼文工作區</h2>
+        <p>可依素材卡產生草稿，也能直接修改貼文內容。</p>
+      </div>
+      <div class="editor-body">
+        <div class="tabs" id="platform-tabs" role="tablist" aria-label="貼文平台"></div>
+        <label class="editor-label" for="post-content">貼文內容</label>
+        <textarea class="post-editor" id="post-content" placeholder="在這裡寫下貼文內容……"></textarea>
+        <div class="actions" aria-label="貼文操作">
+          <button class="action primary" id="generate-draft" type="button">產生草稿</button>
+          <button class="action" id="save-draft" type="button">儲存草稿</button>
+          <button class="action" id="regenerate-draft" type="button">重新產生</button>
+          <button class="action" id="prepublish-check" type="button">發布前檢查</button>
+          <button class="action" id="copy-post" type="button">一鍵複製</button>
+          <button class="action secondary" id="restore-previous" type="button">還原上一版</button>
+        </div>
+        <p class="feedback" id="action-feedback" role="status" aria-live="polite"></p>
+        <p class="helper">編輯內容會自動暫存在這台瀏覽器；「儲存草稿」也可手動暫存。</p>
+      </div>
+    </section>
+
+    <aside class="panel preview-panel" aria-labelledby="preview-heading">
+      <div class="panel-head">
+        <p class="eyebrow">畫面示意</p>
+        <h2 id="preview-heading">手機預覽</h2>
+        <p>貼文內容與圖片文字會即時顯示在手機框。</p>
+      </div>
+      <div class="preview-wrap">
+        <div class="phone" aria-label="手機形狀的貼文預覽示意">
+          <div class="phone-screen">
+            <div class="phone-status" aria-hidden="true"></div>
+            <div class="phone-profile"><div class="avatar" aria-hidden="true">hm</div><div class="handle" id="preview-account"></div></div>
+            <div class="phone-art is-placeholder" id="preview-art">貼文主題預覽位置</div>
+            <div class="phone-actions" aria-hidden="true">♡ 💬 ➤</div>
+            <div class="phone-copy"><strong id="preview-account-copy"></strong><span class="phone-caption is-placeholder" id="preview-caption">貼文文字預覽位置</span></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <dialog class="workspace-dialog" id="settings-dialog" aria-labelledby="settings-heading">
+    <div class="dialog-head">
+      <h2 id="settings-heading">設定</h2>
+      <button class="dialog-button" id="close-settings" type="button">關閉</button>
+    </div>
+    <div class="dialog-fields">
+      <label for="brand-specification">品牌規格
+        <textarea id="brand-specification" placeholder="在這裡貼上品牌規格全文……"></textarea>
+      </label>
+      <label for="review-checklist">檢查清單
+        <textarea id="review-checklist" placeholder="在這裡貼上檢查清單全文……"></textarea>
+      </label>
+    </div>
+    <div class="dialog-actions"><button class="dialog-button" id="save-settings" type="button">儲存</button></div>
+    <p class="dialog-message" id="settings-message" role="status" aria-live="polite"></p>
+  </dialog>
+
+  <dialog class="workspace-dialog posts-dialog" id="posts-dialog" aria-labelledby="posts-heading">
+    <div class="dialog-head">
+      <h2 id="posts-heading">我的貼文</h2>
+      <button class="dialog-button" id="close-posts" type="button">關閉</button>
+    </div>
+    <div class="saved-list" id="saved-list"></div>
+    <p class="dialog-message" id="posts-message" role="status" aria-live="polite"></p>
+  </dialog>
+
+  <dialog class="workspace-dialog" id="instruction-dialog" aria-labelledby="instruction-heading">
+    <div class="dialog-head">
+      <h2 id="instruction-heading">組好的指令</h2>
+      <button class="dialog-button" id="close-instruction" type="button">關閉</button>
+    </div>
+    <textarea class="instruction-text" id="instruction-text" readonly aria-label="組好的指令"></textarea>
+    <div class="dialog-actions"><button class="dialog-button" id="copy-instruction" type="button">複製</button></div>
+    <p class="dialog-message" id="instruction-message" role="status" aria-live="polite"></p>
+  </dialog>
+
+  <script>
+    // 品牌與素材卡設定：日後可從這裡修改名稱、平台及欄位。
+    const SETTINGS = {
+      brandName: "hello monday",
+      accountName: "hello_monday.tw",
+      mainColor: "#a3b1c6",
+      platforms: ["IG"],
+      materialFields: [
+        { label: "貼文主題", required: true, example: "這篇是新品、穿搭分享、活動，還是想和粉絲聊天？" },
+        { label: "日期與時間", required: false, example: "上架、活動開始或截止時間；沒有就留空。" },
+        { label: "商品資訊", required: false, example: "名稱、材質、規格，以及值得介紹的細節。" },
+        { label: "穿搭感受", required: true, example: "一個畫面、一句心情，或真實的小故事。" },
+        { label: "適合誰", required: false, example: "適合的穿搭情境或喜歡這種風格的人。" },
+        { label: "價格與活動條件", required: false, example: "價格、優惠、參加方式及限制；有活動才填。" },
+        { label: "先不要講的", required: true, example: "暫不公開的內容" },
+        { label: "❓ 還不確定的", required: true, example: "未經確認的資訊" }
+      ]
+    };
+
+    document.documentElement.style.setProperty("--brand", SETTINGS.mainColor);
+    document.title = `${SETTINGS.brandName}｜社群工作台`;
+    document.querySelector("#page-title").textContent = document.title;
+    document.querySelector("#preview-account").textContent = SETTINGS.accountName;
+    document.querySelector("#preview-account-copy").textContent = SETTINGS.accountName;
+
+    const fieldContainer = document.querySelector("#material-fields");
+    SETTINGS.materialFields.forEach((field, index) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "field";
+      const label = document.createElement("label");
+      const input = document.createElement("textarea");
+      input.id = `material-${index + 1}`;
+      input.name = `material-${index + 1}`;
+      input.placeholder = field.example;
+      input.rows = 2;
+      input.required = field.required;
+      label.htmlFor = input.id;
+      label.append(document.createTextNode(field.label));
+      const requirement = document.createElement("span");
+      requirement.className = "requirement";
+      requirement.textContent = field.required ? "必填" : "選填";
+      label.append(requirement);
+      wrapper.append(label, input);
+      fieldContainer.append(wrapper);
+    });
+
+    const tabContainer = document.querySelector("#platform-tabs");
+    SETTINGS.platforms.forEach((platform, index) => {
+      const tab = document.createElement("button");
+      tab.className = "tab";
+      tab.type = "button";
+      tab.role = "tab";
+      tab.setAttribute("aria-selected", String(index === 0));
+      tab.textContent = platform;
+      tab.addEventListener("click", () => selectPlatform(platform));
+      tabContainer.append(tab);
+    });
+
+    const STORAGE_KEY = "hello-monday-social-draft-v1";
+    const POSTS_STORAGE_KEY = "hello-monday-saved-posts-v1";
+    const POST_STATUSES = ["草稿", "等老闆確認", "完成"];
+    const FORBIDDEN_PHRASES = ["必買", "手慢無", "全網最低價", "保證顯瘦"];
+    const editor = document.querySelector("#post-content");
+    const feedback = document.querySelector("#action-feedback");
+    const progressSteps = [...document.querySelectorAll("#progress-steps li")];
+    const restoreButton = document.querySelector("#restore-previous");
+    const previewArt = document.querySelector("#preview-art");
+    const previewCaption = document.querySelector("#preview-caption");
+    const platformPosts = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, ""]));
+    const platformVersions = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, 0]));
+    const platformPrevious = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, ""]));
+    const platformChecked = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, null]));
+    let activePlatform = SETTINGS.platforms[0];
+    let version = 0;
+    let previousDraft = "";
+    let checkedContent = null;
+    let currentPostId = null;
+    let currentStatus = POST_STATUSES[0];
+
+    function getMaterial() {
+      return Object.fromEntries(SETTINGS.materialFields.map((field, index) => [
+        field.label,
+        document.querySelector(`#material-${index + 1}`).value.trim()
+      ]));
+    }
+
+    function showFeedback(message, kind = "") {
+      feedback.textContent = message;
+      feedback.className = `feedback ${kind}`.trim();
+    }
+
+    function updatePreview() {
+      const topic = getMaterial()["貼文主題"];
+      previewArt.textContent = topic || "貼文主題預覽位置";
+      previewArt.classList.toggle("is-placeholder", !topic);
+      previewCaption.textContent = editor.value.trim() || "貼文文字預覽位置";
+      previewCaption.classList.toggle("is-placeholder", !editor.value.trim());
+    }
+
+    function rememberPlatform() {
+      platformPosts[activePlatform] = editor.value;
+      platformVersions[activePlatform] = version;
+      platformPrevious[activePlatform] = previousDraft;
+      platformChecked[activePlatform] = checkedContent;
+    }
+
+    function selectPlatform(platform) {
+      if (!SETTINGS.platforms.includes(platform)) return;
+      rememberPlatform();
+      activePlatform = platform;
+      editor.value = platformPosts[platform] || "";
+      version = platformVersions[platform] || 0;
+      previousDraft = platformPrevious[platform] || "";
+      checkedContent = platformChecked[platform] || null;
+      restoreButton.classList.toggle("is-visible", Boolean(previousDraft));
+      [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === platform)));
+      showFeedback("");
+      updatePreview();
+      updateProgress();
+      persistDraft();
+    }
+
+    function updateProgress() {
+      const stage = POST_STATUSES.indexOf(currentStatus);
+      progressSteps.forEach((step, index) => {
+        step.classList.toggle("is-current", index === stage);
+        step.classList.toggle("is-done", index < stage);
+        if (index === stage) step.setAttribute("aria-current", "step");
+        else step.removeAttribute("aria-current");
+      });
+    }
+
+    function invalidateCheck() {
+      checkedContent = null;
+      platformChecked[activePlatform] = null;
+      updateProgress();
+    }
+
+    function missingRequired(material) {
+      return SETTINGS.materialFields
+        .filter(field => field.required && !material[field.label])
+        .map(field => field.label);
+    }
+
+    function makeDraft(material, variant) {
+      const topic = material["貼文主題"];
+      const feeling = material["穿搭感受"];
+      const details = [material["商品資訊"], material["適合誰"]].filter(Boolean);
+      const facts = [material["日期與時間"], material["價格與活動條件"]].filter(Boolean);
+      const versions = [
+        [topic, feeling, ...details, "", ...facts],
+        [feeling, ...details, "", topic, ...facts, "♡"],
+        [`✦ ${topic}`, "", feeling, ...details, "", ...facts]
+      ];
+      return versions[variant % versions.length].join("\n").trim();
+    }
+
+    function generateDraft(isRegeneration) {
+      const material = getMaterial();
+      const missing = missingRequired(material);
+      if (missing.length) {
+        showFeedback(`請先填寫必填欄位：${missing.join("、")}。若沒有暫不公開或未確認的資訊，請填「無」。`, "warning");
+        document.querySelector(`#material-${SETTINGS.materialFields.findIndex(field => field.label === missing[0]) + 1}`).focus();
+        return;
+      }
+      if (isRegeneration && !editor.value.trim()) {
+        showFeedback("目前沒有草稿，請先按「產生草稿」。", "warning");
+        return;
+      }
+      if (editor.value.trim()) {
+        previousDraft = editor.value;
+        restoreButton.classList.add("is-visible");
+      }
+      version = isRegeneration ? version + 1 : 0;
+      editor.value = makeDraft(material, version);
+      invalidateCheck();
+      rememberPlatform();
+      updatePreview();
+      showFeedback(isRegeneration ? "已產生另一版；可按「還原上一版」取回原文。" : "草稿已產生，請確認內容並自行調整。", "success");
+      persistDraft();
+    }
+
+    function sensitiveFragments(value) {
+      return value.split(/[\n，,、；;]/).map(part => part.trim()).filter(part => part && !/^(無|沒有|無。|沒有。)$/.test(part));
+    }
+
+    function runPrepublishCheck() {
+      const material = getMaterial();
+      const post = editor.value.trim();
+      const problems = [];
+      const missing = missingRequired(material);
+      if (missing.length) problems.push(`必填欄位未填：${missing.join("、")}`);
+      if (!post) problems.push("貼文內容尚未填寫");
+      const forbidden = FORBIDDEN_PHRASES.filter(phrase => post.includes(phrase));
+      if (forbidden.length) problems.push(`含不能用的字句：${forbidden.join("、")}`);
+      const restricted = sensitiveFragments(material["先不要講的"] || "").filter(phrase => post.includes(phrase));
+      if (restricted.length) problems.push(`含暫不公開內容：${restricted.join("、")}`);
+      const uncertain = sensitiveFragments(material["❓ 還不確定的"] || "").filter(phrase => post.includes(phrase));
+      if (uncertain.length) problems.push(`含未確認資訊：${uncertain.join("、")}`);
+      if (/活動|優惠|抽獎/.test(material["貼文主題"] || "") && !material["價格與活動條件"]) {
+        problems.push("活動貼文缺少價格與活動條件");
+      }
+      if (problems.length) {
+        checkedContent = null;
+        updateProgress();
+        showFeedback(`請先處理以下項目：\n• ${problems.join("\n• ")}`, "warning");
+        return;
+      }
+      checkedContent = editor.value;
+      platformChecked[activePlatform] = checkedContent;
+      updateProgress();
+      showFeedback("檢查通過：可使用「一鍵複製」。請在發布前再核對實際商品與活動資訊。", "success");
+    }
+
+    async function copyPost() {
+      if (!editor.value.trim()) {
+        showFeedback("貼文內容尚未填寫。", "warning");
+        return;
+      }
+      if (checkedContent !== editor.value) {
+        showFeedback("請先完成「發布前檢查」，再複製貼文。", "warning");
+        return;
+      }
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(editor.value);
+        } else {
+          editor.focus();
+          editor.select();
+          if (!document.execCommand("copy")) throw new Error("複製失敗");
+          editor.setSelectionRange(editor.value.length, editor.value.length);
+        }
+        showFeedback("貼文內容已複製。", "success");
+      } catch {
+        showFeedback("無法自動複製，請選取貼文內容後手動複製。", "warning");
+      }
+    }
+
+    function persistDraft() {
+      try {
+        rememberPlatform();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          material: getMaterial(),
+          posts: platformPosts,
+          versions: platformVersions,
+          platform: activePlatform,
+          postId: currentPostId,
+          status: currentStatus
+        }));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function saveDraft() {
+      const saved = persistDraft();
+      showFeedback(saved ? "草稿已保存在這台瀏覽器。" : "瀏覽器無法儲存草稿，請先複製文字備份。", saved ? "success" : "warning");
+    }
+
+    function loadDraft() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!saved || typeof saved !== "object") return;
+        SETTINGS.materialFields.forEach((field, index) => {
+          const value = saved.material && saved.material[field.label];
+          if (typeof value === "string") document.querySelector(`#material-${index + 1}`).value = value;
+        });
+        if (saved.posts && typeof saved.posts === "object") {
+          SETTINGS.platforms.forEach(platform => {
+            if (typeof saved.posts[platform] === "string") platformPosts[platform] = saved.posts[platform];
+            if (saved.versions && Number.isInteger(saved.versions[platform])) platformVersions[platform] = saved.versions[platform];
+          });
+        } else if (typeof saved.post === "string") {
+          platformPosts[SETTINGS.platforms[0]] = saved.post;
+          if (Number.isInteger(saved.version)) platformVersions[SETTINGS.platforms[0]] = saved.version;
+        }
+        activePlatform = SETTINGS.platforms.includes(saved.platform) ? saved.platform : SETTINGS.platforms[0];
+        currentPostId = typeof saved.postId === "string" ? saved.postId : null;
+        currentStatus = POST_STATUSES.includes(saved.status) ? saved.status : POST_STATUSES[0];
+        editor.value = platformPosts[activePlatform] || "";
+        version = platformVersions[activePlatform] || 0;
+        [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
+        showFeedback("已載入這台瀏覽器儲存的草稿。", "success");
+      } catch {
+        showFeedback("無法讀取先前儲存的草稿。", "warning");
+      }
+      updatePreview();
+      updateProgress();
+    }
+
+    function readSavedPosts() {
+      const saved = JSON.parse(localStorage.getItem(POSTS_STORAGE_KEY) || "[]");
+      if (!Array.isArray(saved)) throw new Error("存檔格式錯誤");
+      return saved;
+    }
+
+    function savePost() {
+      try {
+        rememberPlatform();
+        const posts = readSavedPosts();
+        const material = getMaterial();
+        const name = `${material["日期與時間"] || "未填日期"}＋${material["貼文主題"] || "未填主題"}`;
+        const id = currentPostId || (window.crypto && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+        const record = { id, name, savedAt: new Date().toISOString(), material, posts: { ...platformPosts }, status: currentStatus };
+        const index = posts.findIndex(post => post.id === id);
+        if (index >= 0) posts[index] = record;
+        else posts.push(record);
+        localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+        currentPostId = id;
+        persistDraft();
+        showFeedback("這篇貼文已存檔。", "success");
+      } catch {
+        showFeedback("瀏覽器無法存檔，請先複製文字備份。", "warning");
+      }
+    }
+
+    function openPost(record) {
+      SETTINGS.materialFields.forEach((field, index) => {
+        document.querySelector(`#material-${index + 1}`).value = typeof record.material?.[field.label] === "string" ? record.material[field.label] : "";
+      });
+      SETTINGS.platforms.forEach(platform => {
+        platformPosts[platform] = typeof record.posts?.[platform] === "string" ? record.posts[platform] : "";
+        platformVersions[platform] = 0;
+        platformPrevious[platform] = "";
+        platformChecked[platform] = null;
+      });
+      currentPostId = record.id;
+      currentStatus = POST_STATUSES.includes(record.status) ? record.status : POST_STATUSES[0];
+      activePlatform = SETTINGS.platforms[0];
+      editor.value = platformPosts[activePlatform];
+      version = 0;
+      previousDraft = "";
+      checkedContent = null;
+      restoreButton.classList.remove("is-visible");
+      [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
+      updatePreview();
+      updateProgress();
+      persistDraft();
+      document.querySelector("#posts-dialog").close();
+      showFeedback("已打開貼文。", "success");
+    }
+
+    function renderSavedPosts() {
+      const list = document.querySelector("#saved-list");
+      const message = document.querySelector("#posts-message");
+      list.replaceChildren();
+      try {
+        const posts = readSavedPosts().sort((a, b) => String(b.savedAt).localeCompare(String(a.savedAt)));
+        message.textContent = posts.length ? "" : "目前沒有存過的貼文。";
+        const columns = Object.fromEntries(POST_STATUSES.map(status => {
+          const column = document.createElement("section");
+          column.className = "saved-column";
+          const heading = document.createElement("h3");
+          heading.textContent = `${status}（${posts.filter(post => (POST_STATUSES.includes(post.status) ? post.status : POST_STATUSES[0]) === status).length}）`;
+          const contents = document.createElement("div");
+          contents.className = "saved-column-list";
+          column.append(heading, contents);
+          list.append(column);
+          return [status, contents];
+        }));
+        posts.forEach(record => {
+          const row = document.createElement("div");
+          row.className = "saved-item";
+          const details = document.createElement("div");
+          const name = document.createElement("strong");
+          name.textContent = record.name;
+          const time = document.createElement("time");
+          time.dateTime = record.savedAt;
+          time.textContent = `存檔時間：${new Date(record.savedAt).toLocaleString("zh-TW")}`;
+          details.append(name, time);
+          const actions = document.createElement("div");
+          actions.className = "saved-item-actions";
+          const status = document.createElement("select");
+          status.className = "saved-status";
+          status.setAttribute("aria-label", `變更「${record.name}」的狀態`);
+          POST_STATUSES.forEach(value => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = value;
+            status.append(option);
+          });
+          status.value = POST_STATUSES.includes(record.status) ? record.status : POST_STATUSES[0];
+          status.addEventListener("change", () => {
+            try {
+              const currentPosts = readSavedPosts();
+              const target = currentPosts.find(post => post.id === record.id);
+              if (!target) throw new Error("貼文不存在");
+              target.status = status.value;
+              localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(currentPosts));
+              if (currentPostId === record.id) {
+                currentStatus = status.value;
+                updateProgress();
+                persistDraft();
+              }
+              renderSavedPosts();
+            } catch {
+              message.textContent = "狀態更新失敗，請稍後再試。";
+              status.value = POST_STATUSES.includes(record.status) ? record.status : POST_STATUSES[0];
+            }
+          });
+          const open = document.createElement("button");
+          open.className = "dialog-button";
+          open.type = "button";
+          open.textContent = "打開";
+          open.addEventListener("click", () => openPost(record));
+          const remove = document.createElement("button");
+          remove.className = "dialog-button";
+          remove.type = "button";
+          remove.textContent = "刪除";
+          remove.addEventListener("click", () => {
+            if (!window.confirm("確定嗎？")) return;
+            try {
+              localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(readSavedPosts().filter(post => post.id !== record.id)));
+              if (currentPostId === record.id) {
+                currentPostId = null;
+                persistDraft();
+              }
+              renderSavedPosts();
+            } catch {
+              message.textContent = "刪除失敗，請稍後再試。";
+            }
+          });
+          actions.append(open, remove);
+          row.append(details, status, actions);
+          columns[status.value].append(row);
+        });
+      } catch {
+        message.textContent = "無法讀取存過的貼文。";
+      }
+    }
+
+    function newPost() {
+      SETTINGS.materialFields.forEach((field, index) => document.querySelector(`#material-${index + 1}`).value = "");
+      SETTINGS.platforms.forEach(platform => {
+        platformPosts[platform] = "";
+        platformVersions[platform] = 0;
+        platformPrevious[platform] = "";
+        platformChecked[platform] = null;
+      });
+      currentPostId = null;
+      currentStatus = POST_STATUSES[0];
+      activePlatform = SETTINGS.platforms[0];
+      editor.value = "";
+      version = 0;
+      previousDraft = "";
+      checkedContent = null;
+      restoreButton.classList.remove("is-visible");
+      [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
+      updatePreview();
+      updateProgress();
+      const saved = persistDraft();
+      showFeedback(saved ? "已開始新的一篇。" : "無法自動暫存新貼文。", saved ? "success" : "warning");
+    }
+
+    const SETTINGS_STORAGE_KEY = "hello-monday-workspace-settings-v1";
+    const settingsDialog = document.querySelector("#settings-dialog");
+    const instructionDialog = document.querySelector("#instruction-dialog");
+    const brandSpecification = document.querySelector("#brand-specification");
+    const reviewChecklist = document.querySelector("#review-checklist");
+    const instructionText = document.querySelector("#instruction-text");
+
+    function loadWorkspaceSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || "null");
+        if (!saved || typeof saved !== "object") return;
+        if (typeof saved.brandSpecification === "string") brandSpecification.value = saved.brandSpecification;
+        if (typeof saved.reviewChecklist === "string") reviewChecklist.value = saved.reviewChecklist;
+      } catch {
+        document.querySelector("#settings-message").textContent = "無法讀取先前儲存的設定。";
+      }
+    }
+
+    function saveWorkspaceSettings() {
+      try {
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
+          brandSpecification: brandSpecification.value,
+          reviewChecklist: reviewChecklist.value
+        }));
+        document.querySelector("#settings-message").textContent = "設定已保存在這台瀏覽器。";
+      } catch {
+        document.querySelector("#settings-message").textContent = "無法儲存設定，請先複製內容備份。";
+      }
+    }
+
+    function addWeekdays(value) {
+      const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+      return value.replace(/\b(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})(?!\d|\s*[（(][日一二三四五六][）)])/g, (original, yearText, monthText, dayText) => {
+        const year = Number(yearText);
+        const month = Number(monthText);
+        const day = Number(dayText);
+        const date = new Date(year, month - 1, day);
+        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return original;
+        return `${yearText}/${monthText.padStart(2, "0")}/${dayText.padStart(2, "0")}（${weekdays[date.getDay()]}）`;
+      });
+    }
+
+    function buildInstruction() {
+      const material = getMaterial();
+      const platformHeadings = SETTINGS.platforms.map(platform => `【${platform}】`).join("、");
+      const materialLines = SETTINGS.materialFields.map(field => {
+        const value = material[field.label];
+        const formatted = field.label === "日期與時間" ? addWeekdays(value) : value;
+        return `${field.label}：${formatted || "（未填）"}`;
+      });
+      const sections = [
+        "（這段只要回覆文字，不要建立或修改任何檔案。）",
+        `你是【${SETTINGS.brandName}】的小編。請照品牌規格，用素材卡的內容，寫${platformHeadings}的貼文，每個平台一篇。`,
+        "規則：素材卡上沒有的事不要寫；只能在某個平台說的，只寫在那個平台；先不要講的，每一篇都不能寫；還不確定的不要寫，寫完列出來問我。",
+        `回覆格式：每個平台用${platformHeadings}這樣的標題分開。`,
+        `品牌規格：\n${brandSpecification.value.trim() || "（未填）"}`,
+        `素材卡：\n${materialLines.join("\n")}`
+      ];
+      if (reviewChecklist.value.trim()) {
+        sections.push(`寫完照這張清單檢查，有 ❌ 先自己改好\n${reviewChecklist.value.trim()}`);
+      }
+      instructionText.value = sections.join("\n\n");
+      document.querySelector("#instruction-message").textContent = "";
+      instructionDialog.showModal();
+    }
+
+    async function copyInstruction() {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(instructionText.value);
+        } else {
+          instructionText.focus();
+          instructionText.select();
+          if (!document.execCommand("copy")) throw new Error("複製失敗");
+        }
+        document.querySelector("#instruction-message").textContent = "指令已複製。";
+      } catch {
+        document.querySelector("#instruction-message").textContent = "無法自動複製，請選取指令後手動複製。";
+      }
+    }
+
+    document.querySelector("#material-fields").addEventListener("submit", event => event.preventDefault());
+    document.querySelector("#material-fields").addEventListener("input", () => {
+      invalidateCheck();
+      updatePreview();
+      persistDraft();
+    });
+    editor.addEventListener("input", () => {
+      platformPosts[activePlatform] = editor.value;
+      invalidateCheck();
+      updatePreview();
+      persistDraft();
+    });
+    document.querySelector("#generate-draft").addEventListener("click", () => generateDraft(false));
+    document.querySelector("#regenerate-draft").addEventListener("click", () => generateDraft(true));
+    document.querySelector("#save-draft").addEventListener("click", saveDraft);
+    document.querySelector("#save-post").addEventListener("click", savePost);
+    document.querySelector("#open-posts").addEventListener("click", () => {
+      renderSavedPosts();
+      document.querySelector("#posts-dialog").showModal();
+    });
+    document.querySelector("#close-posts").addEventListener("click", () => document.querySelector("#posts-dialog").close());
+    document.querySelector("#new-post").addEventListener("click", newPost);
+    document.querySelector("#prepublish-check").addEventListener("click", runPrepublishCheck);
+    document.querySelector("#copy-post").addEventListener("click", copyPost);
+    restoreButton.addEventListener("click", () => {
+      if (!previousDraft) return;
+      const currentDraft = editor.value;
+      editor.value = previousDraft;
+      previousDraft = currentDraft;
+      invalidateCheck();
+      rememberPlatform();
+      updatePreview();
+      showFeedback("已還原上一版草稿。", "success");
+      persistDraft();
+    });
+    document.querySelector("#open-settings").addEventListener("click", () => settingsDialog.showModal());
+    document.querySelector("#close-settings").addEventListener("click", () => settingsDialog.close());
+    document.querySelector("#save-settings").addEventListener("click", saveWorkspaceSettings);
+    document.querySelector("#build-instruction").addEventListener("click", buildInstruction);
+    document.querySelector("#close-instruction").addEventListener("click", () => instructionDialog.close());
+    document.querySelector("#copy-instruction").addEventListener("click", copyInstruction);
+    loadWorkspaceSettings();
+    loadDraft();
+    updateProgress();
+  </script>
+</body>
+</html>
