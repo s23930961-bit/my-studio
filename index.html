@@ -96,7 +96,13 @@
     .panel-head p:last-child { margin: 7px 0 0; color: var(--muted); font-size: .86rem; }
     .form-fields { display: grid; gap: 20px; padding: 22px 24px 28px; }
     .material-actions { padding: 0 24px 28px; }
+    .material-status { margin: 12px 0 0; font-size: .85rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .material-status.is-error { color: #b42318; }
+    .ai-settings-group { display: grid; gap: 12px; margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+    .ai-settings-group legend { padding: 0 6px; font-weight: 700; }
+    .dialog-fields select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: var(--paper); }
     .material-button { width: 100%; background: var(--brand-pale); }
+    #write-with-ai:disabled { background: #d8dce3; border-color: #aeb6c1; color: #626b79; cursor: not-allowed; }
     .material-button + .material-button { margin-top: 10px; }
     .field { display: grid; gap: 7px; }
     .field label { font-weight: 700; font-size: .9rem; }
@@ -147,6 +153,24 @@
     .feedback { margin: 13px 0 0; min-height: 1.5em; font-size: .85rem; white-space: pre-line; }
     .feedback.success { color: var(--success); }
     .feedback.warning { color: var(--warning); }
+    .ai-helper { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .ai-helper h3 { margin: 0 0 12px; font-size: 1rem; }
+    .helper-history { display: grid; gap: 9px; max-height: 280px; overflow-y: auto; margin-bottom: 12px; }
+    .helper-message { padding: 10px 12px; border-radius: 10px; background: var(--brand-pale); white-space: pre-wrap; overflow-wrap: anywhere; font-size: .84rem; }
+    .helper-message.is-assistant { background: var(--canvas); }
+    .helper-message strong { display: block; margin-bottom: 4px; }
+    .helper-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .helper-compose { display: flex; gap: 8px; }
+    .helper-compose input { flex: 1; min-width: 0; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; }
+    .review-report { max-height: 65vh; overflow-y: auto; margin-top: 18px; line-height: 1.6; }
+    .review-line { padding: 5px 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .review-line.is-fail { background: #fde5e2; }
+    .review-line.is-warning { background: #fff0bf; }
+    .review-replies { display: grid; gap: 12px; margin-top: 20px; }
+    .review-replies[hidden] { display: none; }
+    .review-reply { display: grid; gap: 6px; font-size: .88rem; }
+    .review-reply textarea { width: 100%; min-height: 72px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; font: inherit; resize: vertical; }
+    #review-note { white-space: pre-line; }
     .preview-wrap { padding: 24px 20px 28px; display: flex; justify-content: center; }
     .phone {
       width: min(100%, 310px);
@@ -189,6 +213,21 @@
     .phone-copy strong { display: block; margin-bottom: 6px; color: var(--ink); }
     .phone-caption { display: block; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
     .phone-caption.is-placeholder { color: var(--muted); }
+    .phone-screen.is-fb .phone-profile { border-bottom: 0; }
+    .phone-screen.is-fb .phone-copy { padding-top: 0; }
+    .phone-screen.is-fb .phone-art { aspect-ratio: 1.65 / 1; }
+    .phone-screen.is-fb .phone-actions { letter-spacing: 0; display: flex; justify-content: space-around; border-top: 1px solid var(--line); }
+    .phone-screen.is-ig .phone-actions { border-bottom: 0; }
+    .phone-screen.is-line { background: #c9dbea; }
+    .phone-screen.is-line .line-chat { display: flex; align-items: flex-start; gap: 9px; padding: 22px 12px; }
+    .phone-screen.is-line .line-bubble { max-width: calc(100% - 48px); padding: 12px; border-radius: 4px 14px 14px 14px; background: #fff; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .86rem; line-height: 1.5; }
+    .phone-screen.is-line .avatar { flex: none; }
+    .preview-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .preview-image-controls { display: flex; align-items: center; justify-content: space-between; padding: 7px 12px; font-size: .8rem; }
+    .preview-image-controls button { border: 0; background: transparent; color: var(--ink); cursor: pointer; font-size: 1.1rem; }
+    .image-upload { display: block; margin: 12px 20px 0; font-size: .82rem; }
+    .image-upload[hidden] { display: none; }
+    .image-upload input { display: block; max-width: 100%; margin-top: 7px; }
     .workspace-dialog {
       width: min(720px, calc(100% - 32px));
       max-height: min(85vh, 900px);
@@ -204,7 +243,7 @@
     .dialog-head h2 { margin: 0; }
     .dialog-fields { display: grid; gap: 16px; margin-top: 20px; }
     .dialog-fields label { display: grid; gap: 7px; font-weight: 700; }
-    .dialog-fields textarea, .instruction-text {
+    .dialog-fields textarea, .dialog-fields input, .instruction-text {
       width: 100%;
       min-height: 180px;
       padding: 12px;
@@ -215,6 +254,7 @@
       line-height: 1.7;
       resize: vertical;
     }
+    .dialog-fields input { min-height: 0; }
     .dialog-actions { justify-content: flex-end; margin-top: 18px; }
     .dialog-message { margin: 12px 0 0; min-height: 1.4em; color: var(--muted); font-size: .86rem; }
     .posts-dialog { width: min(1100px, calc(100% - 32px)); }
@@ -273,7 +313,11 @@
       <form class="form-fields" id="material-fields" autocomplete="off"></form>
       <div class="material-actions">
         <button class="material-button" id="build-instruction" type="button">🧩 組好指令</button>
+        <button class="material-button" id="write-with-ai" type="button">✨ 讓 AI 寫</button>
+        <button class="material-button" id="paste-response" type="button">📥 貼回</button>
         <button class="material-button" id="save-post" type="button">💾 存檔</button>
+        <p class="material-status" id="material-status" role="status" aria-live="polite"></p>
+        <p class="material-status" id="ai-usage" role="status" aria-live="polite"></p>
       </div>
     </section>
 
@@ -294,9 +338,27 @@
           <button class="action" id="prepublish-check" type="button">發布前檢查</button>
           <button class="action" id="copy-post" type="button">一鍵複製</button>
           <button class="action secondary" id="restore-previous" type="button">還原上一版</button>
+          <button class="action" id="review-with-ai" type="button">🔍 檢查官</button>
         </div>
         <p class="feedback" id="action-feedback" role="status" aria-live="polite"></p>
+        <p class="material-status" id="review-status" role="status" aria-live="polite"></p>
         <p class="helper">編輯內容會自動暫存在這台瀏覽器；「儲存草稿」也可手動暫存。</p>
+        <button class="action" id="undo-ai" type="button" disabled>↩ 復原上一版</button>
+        <section class="ai-helper" aria-labelledby="ai-helper-heading">
+          <h3 id="ai-helper-heading">💬 AI 小幫手</h3>
+          <div class="helper-history" id="helper-history" aria-live="polite"></div>
+          <div class="helper-shortcuts">
+            <button class="action helper-shortcut" type="button">短一點</button>
+            <button class="action helper-shortcut" type="button">換開頭</button>
+            <button class="action helper-shortcut" type="button">少一點 emoji</button>
+            <button class="action helper-shortcut" type="button">更像範例</button>
+          </div>
+          <form class="helper-compose" id="helper-form">
+            <input id="helper-input" type="text" aria-label="告訴 AI 怎麼修改貼文" placeholder="想怎麼修改這篇貼文？">
+            <button class="action primary" id="helper-send" type="submit">送出</button>
+          </form>
+          <p class="material-status" id="helper-status" role="status" aria-live="polite"></p>
+        </section>
       </div>
     </section>
 
@@ -304,19 +366,18 @@
       <div class="panel-head">
         <p class="eyebrow">畫面示意</p>
         <h2 id="preview-heading">手機預覽</h2>
-        <p>貼文內容與圖片文字會即時顯示在手機框。</p>
+        <p>切換平台可查看對應的手機版型與圖片。</p>
       </div>
       <div class="preview-wrap">
         <div class="phone" aria-label="手機形狀的貼文預覽示意">
-          <div class="phone-screen">
-            <div class="phone-status" aria-hidden="true"></div>
-            <div class="phone-profile"><div class="avatar" aria-hidden="true">hm</div><div class="handle" id="preview-account"></div></div>
-            <div class="phone-art is-placeholder" id="preview-art">貼文主題預覽位置</div>
-            <div class="phone-actions" aria-hidden="true">♡ 💬 ➤</div>
-            <div class="phone-copy"><strong id="preview-account-copy"></strong><span class="phone-caption is-placeholder" id="preview-caption">貼文文字預覽位置</span></div>
-          </div>
+          <div class="phone-screen" id="phone-screen"></div>
         </div>
       </div>
+      <label class="image-upload" id="image-upload-label" for="preview-image-input">貼文圖片
+        <input id="preview-image-input" type="file" accept="image/*">
+      </label>
+      <div class="preview-image-controls" id="preview-image-controls"></div>
+      <p class="material-status" id="image-message" role="status" aria-live="polite"></p>
     </aside>
   </main>
 
@@ -329,6 +390,21 @@
       <label for="brand-specification">品牌規格
         <textarea id="brand-specification" placeholder="在這裡貼上品牌規格全文……"></textarea>
       </label>
+      <fieldset class="ai-settings-group"><legend>第一組 OpenRouter</legend>
+        <label for="ai-api-key">OpenRouter 金鑰<input id="ai-api-key" type="password" autocomplete="off" placeholder="貼上 OpenRouter API 金鑰"></label>
+        <label for="openrouter-model">模型<select id="openrouter-model">
+          <optgroup label="DeepSeek"><option value="deepseek/deepseek-v4.1-flash">deepseek/deepseek-v4.1-flash</option><option value="deepseek/deepseek-v4-pro">deepseek/deepseek-v4-pro</option><option value="deepseek/deepseek-v3.2">deepseek/deepseek-v3.2</option></optgroup>
+          <optgroup label="Kimi"><option value="moonshotai/kimi-k2.6">moonshotai/kimi-k2.6</option><option value="moonshotai/kimi-k2.5">moonshotai/kimi-k2.5</option><option value="moonshotai/kimi-k3">moonshotai/kimi-k3</option></optgroup>
+          <optgroup label="MiniMax"><option value="minimax/minimax-m3">minimax/minimax-m3</option><option value="minimax/minimax-m2.7">minimax/minimax-m2.7</option><option value="minimax/minimax-m2.5">minimax/minimax-m2.5</option></optgroup>
+        </select></label>
+        <label for="custom-model">或自己打模型名稱<input id="custom-model" type="text" autocomplete="off" placeholder="有填就優先使用"></label>
+        <label for="reasoning-effort">思考<select id="reasoning-effort"><option value="low">少想一點 low</option><option value="medium">多想一點 medium</option><option value="high">想很久 high</option></select></label>
+      </fieldset>
+      <fieldset class="ai-settings-group"><legend>第二組 Gemini</legend>
+        <label for="gemini-api-key">Gemini 金鑰<input id="gemini-api-key" type="password" autocomplete="off" placeholder="貼上 Gemini API 金鑰"></label>
+        <label for="gemini-model">Gemini 模型<select id="gemini-model"><option value="gemini-3.8-flash">gemini-3.8-flash</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option></select></label>
+      </fieldset>
+      <label for="ai-provider-order">先用哪一組<select id="ai-provider-order"><option value="openrouter-then-gemini">先用 OpenRouter，失敗自動換 Gemini</option><option value="gemini-only">只用 Gemini</option><option value="openrouter-only">只用 OpenRouter</option></select></label>
       <label for="review-checklist">檢查清單
         <textarea id="review-checklist" placeholder="在這裡貼上檢查清單全文……"></textarea>
       </label>
@@ -356,13 +432,38 @@
     <p class="dialog-message" id="instruction-message" role="status" aria-live="polite"></p>
   </dialog>
 
+  <dialog class="workspace-dialog" id="paste-dialog" aria-labelledby="paste-heading">
+    <div class="dialog-head">
+      <h2 id="paste-heading">貼回 AI 回覆</h2>
+      <button class="dialog-button" id="close-paste" type="button">關閉</button>
+    </div>
+    <textarea class="instruction-text" id="paste-text" aria-label="AI 回覆文字" placeholder="貼上含【FB】【IG】【LINE】標題的回覆"></textarea>
+    <div class="dialog-actions"><button class="dialog-button" id="apply-paste" type="button">貼回分頁</button></div>
+    <p class="dialog-message" id="paste-message" role="status" aria-live="polite"></p>
+  </dialog>
+
+  <dialog class="workspace-dialog" id="review-dialog" aria-labelledby="review-heading">
+    <div class="dialog-head">
+      <h2 id="review-heading">🔍 檢查報告</h2>
+      <button class="dialog-button" id="close-review" type="button">關閉</button>
+    </div>
+    <p class="dialog-message" id="review-note"></p>
+    <div class="review-report" id="review-report"></div>
+    <section class="review-replies" id="review-replies" hidden aria-label="回覆檢查問題"></section>
+    <div class="dialog-actions"><button class="dialog-button" id="apply-review-replies" type="button" hidden>依我的回覆修改</button></div>
+    <p class="dialog-message" id="review-reply-status" role="status" aria-live="polite"></p>
+  </dialog>
+
   <script>
+    const AI_MODEL = "deepseek/deepseek-v4.1-flash";
+    const AI_MAX_TOKENS = 8000;
+    const AI_TIMEOUT_MS = 120000;
     // 品牌與素材卡設定：日後可從這裡修改名稱、平台及欄位。
     const SETTINGS = {
       brandName: "hello monday",
       accountName: "hello_monday.tw",
       mainColor: "#a3b1c6",
-      platforms: ["IG"],
+      platforms: ["FB", "IG", "LINE"],
       materialFields: [
         { label: "貼文主題", required: true, example: "這篇是新品、穿搭分享、活動，還是想和粉絲聊天？" },
         { label: "日期與時間", required: false, example: "上架、活動開始或截止時間；沒有就留空。" },
@@ -378,8 +479,6 @@
     document.documentElement.style.setProperty("--brand", SETTINGS.mainColor);
     document.title = `${SETTINGS.brandName}｜社群工作台`;
     document.querySelector("#page-title").textContent = `${SETTINGS.brandName} v2｜社群工作台`;
-    document.querySelector("#preview-account").textContent = SETTINGS.accountName;
-    document.querySelector("#preview-account-copy").textContent = SETTINGS.accountName;
 
     const fieldContainer = document.querySelector("#material-fields");
     SETTINGS.materialFields.forEach((field, index) => {
@@ -422,17 +521,28 @@
     const feedback = document.querySelector("#action-feedback");
     const progressSteps = [...document.querySelectorAll("#progress-steps li")];
     const restoreButton = document.querySelector("#restore-previous");
-    const previewArt = document.querySelector("#preview-art");
-    const previewCaption = document.querySelector("#preview-caption");
+    const phoneScreen = document.querySelector("#phone-screen");
+    const imageInput = document.querySelector("#preview-image-input");
+    const imageControls = document.querySelector("#preview-image-controls");
+    const imageMessage = document.querySelector("#image-message");
+    const platformImages = { FB: [], IG: [] };
+    const imageIndexes = { FB: 0, IG: 0 };
+    let imageUrls = [];
     const platformPosts = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, ""]));
     const platformVersions = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, 0]));
     const platformPrevious = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, ""]));
     const platformChecked = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, null]));
+    const helperHistory = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, []]));
+    let aiPreviousPosts = null;
+    let postContextRevision = 0;
     let activePlatform = SETTINGS.platforms[0];
     let version = 0;
     let previousDraft = "";
     let checkedContent = null;
     let currentPostId = null;
+    let reviewIssues = [];
+    let reviewBasePosts = null;
+    let reviewContextRevision = 0;
     let currentStatus = POST_STATUSES[0];
 
     function getMaterial() {
@@ -447,12 +557,152 @@
       feedback.className = `feedback ${kind}`.trim();
     }
 
+    function renderHelperHistory() {
+      const container = document.querySelector("#helper-history");
+      container.replaceChildren();
+      helperHistory[activePlatform].forEach(message => {
+        const item = document.createElement("div");
+        item.className = `helper-message ${message.role === "assistant" ? "is-assistant" : ""}`.trim();
+        const label = document.createElement("strong");
+        label.textContent = message.role === "assistant" ? "它回的" : "我說的";
+        const content = document.createElement("span");
+        content.textContent = message.content;
+        item.append(label, content);
+        container.append(item);
+      });
+    }
+
+    function updateUndoButton() {
+      document.querySelector("#undo-ai").disabled = !aiPreviousPosts;
+    }
+
+    function rememberAiSnapshot() {
+      rememberPlatform();
+      aiPreviousPosts = { ...platformPosts };
+      updateUndoButton();
+    }
+
+    function undoAiChange() {
+      if (!aiPreviousPosts) return;
+      rememberPlatform();
+      const current = { ...platformPosts };
+      SETTINGS.platforms.forEach(platform => {
+        platformPosts[platform] = aiPreviousPosts[platform];
+        platformChecked[platform] = null;
+      });
+      aiPreviousPosts = current;
+      editor.value = platformPosts[activePlatform];
+      checkedContent = null;
+      updatePreview();
+      persistDraft();
+      persistAiPostState();
+      showFeedback("已切換貼文版本；再按一次可換回來。", "success");
+    }
+
+    function openImageDatabase() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("hello-monday-post-images-v1", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("images");
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function imageStore(action, key, value) {
+      const database = await openImageDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction("images", action === "get" ? "readonly" : "readwrite");
+        const store = transaction.objectStore("images");
+        const request = action === "put" ? store.put(value, key) : action === "delete" ? store.delete(key) : store.get(key);
+        let result;
+        request.onsuccess = () => { result = request.result; };
+        transaction.oncomplete = () => { database.close(); resolve(result); };
+        transaction.onerror = () => { database.close(); reject(transaction.error); };
+      });
+    }
+
+    function clearImageUrls() {
+      imageUrls.forEach(url => URL.revokeObjectURL(url));
+      imageUrls = [];
+    }
+
+    async function loadImages(key) {
+      const saved = await imageStore("get", key);
+      clearImageUrls();
+      platformImages.FB = Array.isArray(saved?.FB) ? saved.FB : [];
+      platformImages.IG = Array.isArray(saved?.IG) ? saved.IG : [];
+      imageIndexes.FB = 0;
+      imageIndexes.IG = 0;
+      updatePreview();
+    }
+
     function updatePreview() {
+      clearImageUrls();
       const topic = getMaterial()["貼文主題"];
-      previewArt.textContent = topic || "貼文主題預覽位置";
-      previewArt.classList.toggle("is-placeholder", !topic);
-      previewCaption.textContent = editor.value.trim() || "貼文文字預覽位置";
-      previewCaption.classList.toggle("is-placeholder", !editor.value.trim());
+      const caption = editor.value.trim() || "貼文文字預覽位置";
+      phoneScreen.className = `phone-screen is-${activePlatform.toLowerCase()}`;
+      imageControls.replaceChildren();
+      imageInput.multiple = activePlatform === "IG";
+      document.querySelector("#image-upload-label").hidden = activePlatform === "LINE";
+      if (activePlatform === "LINE") {
+        phoneScreen.innerHTML = '<div class="phone-status" aria-hidden="true"></div><div class="line-chat"><div class="avatar" aria-hidden="true">hm</div><div class="line-bubble"></div></div>';
+        phoneScreen.querySelector(".line-bubble").textContent = caption;
+        return;
+      }
+      const profile = '<div class="phone-profile"><div class="avatar" aria-hidden="true">hm</div><div class="handle"></div></div>';
+      const art = '<div class="phone-art"></div>';
+      const copy = '<div class="phone-copy"><span class="phone-caption"></span></div>';
+      const actions = `<div class="phone-actions" aria-hidden="true">${activePlatform === "FB" ? "讚　　留言　　分享" : "♡ 💬 ➤"}</div>`;
+      phoneScreen.innerHTML = '<div class="phone-status" aria-hidden="true"></div>' + profile + (activePlatform === "FB" ? copy + art + actions : art + actions + copy);
+      phoneScreen.querySelector(".handle").textContent = activePlatform === "FB" ? `${SETTINGS.brandName} · 剛剛` : SETTINGS.accountName;
+      phoneScreen.querySelector(".phone-caption").textContent = activePlatform === "IG" ? `${SETTINGS.accountName}  ${caption}` : caption;
+      const artBox = phoneScreen.querySelector(".phone-art");
+      const files = platformImages[activePlatform];
+      const index = Math.min(imageIndexes[activePlatform], files.length - 1);
+      if (files.length) {
+        const image = document.createElement("img");
+        image.className = "preview-image";
+        image.alt = `${activePlatform} 貼文圖片 ${index + 1}`;
+        const url = URL.createObjectURL(files[index]);
+        imageUrls.push(url);
+        image.src = url;
+        artBox.replaceChildren(image);
+        artBox.style.padding = "0";
+      } else {
+        artBox.textContent = topic || "貼文圖片預覽位置";
+        artBox.classList.add("is-placeholder");
+      }
+      if (activePlatform === "IG" && files.length > 1) {
+        const previous = document.createElement("button");
+        const next = document.createElement("button");
+        previous.type = next.type = "button";
+        previous.textContent = "‹";
+        next.textContent = "›";
+        previous.setAttribute("aria-label", "上一張圖片");
+        next.setAttribute("aria-label", "下一張圖片");
+        previous.addEventListener("click", () => { imageIndexes.IG = (index - 1 + files.length) % files.length; updatePreview(); });
+        next.addEventListener("click", () => { imageIndexes.IG = (index + 1) % files.length; updatePreview(); });
+        const count = document.createElement("span");
+        count.textContent = `${index + 1} / ${files.length}`;
+        imageControls.append(previous, count, next);
+      }
+      if (files.length) {
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "移除目前圖片";
+        remove.addEventListener("click", async () => {
+          files.splice(index, 1);
+          imageIndexes[activePlatform] = 0;
+          updatePreview();
+          try {
+            await imageStore("put", "draft", { FB: platformImages.FB, IG: platformImages.IG });
+            imageMessage.textContent = "圖片已從草稿移除；按「💾 存檔」可更新這篇貼文。";
+          } catch {
+            imageMessage.textContent = "無法儲存圖片變更。";
+          }
+        });
+        imageControls.append(remove);
+      }
     }
 
     function rememberPlatform() {
@@ -474,6 +724,7 @@
       [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === platform)));
       showFeedback("");
       updatePreview();
+      renderHelperHistory();
       updateProgress();
       persistDraft();
     }
@@ -603,7 +854,9 @@
           versions: platformVersions,
           platform: activePlatform,
           postId: currentPostId,
-          status: currentStatus
+          status: currentStatus,
+          helperHistory,
+          aiPreviousPosts
         }));
         return true;
       } catch {
@@ -630,12 +883,20 @@
             if (saved.versions && Number.isInteger(saved.versions[platform])) platformVersions[platform] = saved.versions[platform];
           });
         } else if (typeof saved.post === "string") {
-          platformPosts[SETTINGS.platforms[0]] = saved.post;
-          if (Number.isInteger(saved.version)) platformVersions[SETTINGS.platforms[0]] = saved.version;
+          platformPosts.IG = saved.post;
+          if (Number.isInteger(saved.version)) platformVersions.IG = saved.version;
+          activePlatform = "IG";
         }
-        activePlatform = SETTINGS.platforms.includes(saved.platform) ? saved.platform : SETTINGS.platforms[0];
+        activePlatform = SETTINGS.platforms.includes(saved.platform) ? saved.platform : activePlatform;
         currentPostId = typeof saved.postId === "string" ? saved.postId : null;
         currentStatus = POST_STATUSES.includes(saved.status) ? saved.status : POST_STATUSES[0];
+        SETTINGS.platforms.forEach(platform => {
+          helperHistory[platform] = Array.isArray(saved.helperHistory?.[platform])
+            ? saved.helperHistory[platform].filter(message => ["user", "assistant"].includes(message?.role) && typeof message.content === "string").slice(-8)
+            : [];
+        });
+        aiPreviousPosts = SETTINGS.platforms.every(platform => typeof saved.aiPreviousPosts?.[platform] === "string")
+          ? { ...saved.aiPreviousPosts } : null;
         editor.value = platformPosts[activePlatform] || "";
         version = platformVersions[activePlatform] || 0;
         [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
@@ -644,6 +905,8 @@
         showFeedback("無法讀取先前儲存的草稿。", "warning");
       }
       updatePreview();
+      renderHelperHistory();
+      updateUndoButton();
       updateProgress();
     }
 
@@ -653,14 +916,33 @@
       return saved;
     }
 
-    function savePost() {
+    function persistAiPostState() {
+      if (!currentPostId) return true;
+      try {
+        const posts = readSavedPosts();
+        const record = posts.find(post => post.id === currentPostId);
+        if (!record) return true;
+        record.posts = { ...platformPosts };
+        record.helperHistory = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, helperHistory[platform].map(message => ({ ...message }))]));
+        record.aiPreviousPosts = aiPreviousPosts && { ...aiPreviousPosts };
+        localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    async function savePost() {
       try {
         rememberPlatform();
         const posts = readSavedPosts();
         const material = getMaterial();
         const name = `${material["日期與時間"] || "未填日期"}＋${material["貼文主題"] || "未填主題"}`;
         const id = currentPostId || (window.crypto && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
-        const record = { id, name, savedAt: new Date().toISOString(), material, posts: { ...platformPosts }, status: currentStatus };
+        await imageStore("put", id, { FB: platformImages.FB, IG: platformImages.IG });
+        const record = { id, name, savedAt: new Date().toISOString(), material, posts: { ...platformPosts }, status: currentStatus,
+          helperHistory: Object.fromEntries(SETTINGS.platforms.map(platform => [platform, helperHistory[platform].map(message => ({ ...message }))])),
+          aiPreviousPosts: aiPreviousPosts && { ...aiPreviousPosts } };
         const index = posts.findIndex(post => post.id === id);
         if (index >= 0) posts[index] = record;
         else posts.push(record);
@@ -673,7 +955,8 @@
       }
     }
 
-    function openPost(record) {
+    async function openPost(record) {
+      postContextRevision += 1;
       SETTINGS.materialFields.forEach((field, index) => {
         document.querySelector(`#material-${index + 1}`).value = typeof record.material?.[field.label] === "string" ? record.material[field.label] : "";
       });
@@ -682,8 +965,20 @@
         platformVersions[platform] = 0;
         platformPrevious[platform] = "";
         platformChecked[platform] = null;
+        helperHistory[platform] = Array.isArray(record.helperHistory?.[platform])
+          ? record.helperHistory[platform].filter(message => ["user", "assistant"].includes(message?.role) && typeof message.content === "string").slice(-8)
+          : [];
       });
+      aiPreviousPosts = SETTINGS.platforms.every(platform => typeof record.aiPreviousPosts?.[platform] === "string")
+        ? { ...record.aiPreviousPosts } : null;
       currentPostId = record.id;
+      try {
+        await loadImages(record.id);
+        await imageStore("put", "draft", { FB: platformImages.FB, IG: platformImages.IG });
+        imageMessage.textContent = "";
+      } catch {
+        imageMessage.textContent = "無法讀取這篇貼文的圖片。";
+      }
       currentStatus = POST_STATUSES.includes(record.status) ? record.status : POST_STATUSES[0];
       activePlatform = SETTINGS.platforms[0];
       editor.value = platformPosts[activePlatform];
@@ -693,6 +988,8 @@
       restoreButton.classList.remove("is-visible");
       [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
       updatePreview();
+      renderHelperHistory();
+      updateUndoButton();
       updateProgress();
       persistDraft();
       document.querySelector("#posts-dialog").close();
@@ -766,10 +1063,11 @@
           remove.className = "dialog-button";
           remove.type = "button";
           remove.textContent = "刪除";
-          remove.addEventListener("click", () => {
+          remove.addEventListener("click", async () => {
             if (!window.confirm("確定嗎？")) return;
             try {
               localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(readSavedPosts().filter(post => post.id !== record.id)));
+              await imageStore("delete", record.id);
               if (currentPostId === record.id) {
                 currentPostId = null;
                 persistDraft();
@@ -789,6 +1087,15 @@
     }
 
     function newPost() {
+      postContextRevision += 1;
+      aiPreviousPosts = null;
+      SETTINGS.platforms.forEach(platform => { helperHistory[platform] = []; });
+      clearImageUrls();
+      platformImages.FB = [];
+      platformImages.IG = [];
+      imageIndexes.FB = 0;
+      imageIndexes.IG = 0;
+      imageStore("put", "draft", { FB: [], IG: [] }).catch(() => { imageMessage.textContent = "無法清除暫存圖片。"; });
       SETTINGS.materialFields.forEach((field, index) => document.querySelector(`#material-${index + 1}`).value = "");
       SETTINGS.platforms.forEach(platform => {
         platformPosts[platform] = "";
@@ -806,6 +1113,8 @@
       restoreButton.classList.remove("is-visible");
       [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
       updatePreview();
+      renderHelperHistory();
+      updateUndoButton();
       updateProgress();
       const saved = persistDraft();
       showFeedback(saved ? "已開始新的一篇。" : "無法自動暫存新貼文。", saved ? "success" : "warning");
@@ -814,15 +1123,32 @@
     const SETTINGS_STORAGE_KEY = "hello-monday-workspace-settings-v1";
     const settingsDialog = document.querySelector("#settings-dialog");
     const instructionDialog = document.querySelector("#instruction-dialog");
+    const pasteDialog = document.querySelector("#paste-dialog");
     const brandSpecification = document.querySelector("#brand-specification");
+    const aiApiKey = document.querySelector("#ai-api-key");
+    const openrouterModel = document.querySelector("#openrouter-model");
+    const customModel = document.querySelector("#custom-model");
+    const reasoningEffort = document.querySelector("#reasoning-effort");
+    const geminiApiKey = document.querySelector("#gemini-api-key");
+    const geminiModel = document.querySelector("#gemini-model");
+    const aiProviderOrder = document.querySelector("#ai-provider-order");
+    const aiUsage = document.querySelector("#ai-usage");
     const reviewChecklist = document.querySelector("#review-checklist");
     const instructionText = document.querySelector("#instruction-text");
+    const materialStatus = document.querySelector("#material-status");
 
     function loadWorkspaceSettings() {
       try {
         const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || "null");
         if (!saved || typeof saved !== "object") return;
         if (typeof saved.brandSpecification === "string") brandSpecification.value = saved.brandSpecification;
+        if (typeof saved.aiApiKey === "string") aiApiKey.value = saved.aiApiKey;
+        if ([...openrouterModel.options].some(option => option.value === saved.openrouterModel)) openrouterModel.value = saved.openrouterModel;
+        if (typeof saved.customModel === "string") customModel.value = saved.customModel;
+        if (["low", "medium", "high"].includes(saved.reasoningEffort)) reasoningEffort.value = saved.reasoningEffort;
+        if (typeof saved.geminiApiKey === "string") geminiApiKey.value = saved.geminiApiKey;
+        if ([...geminiModel.options].some(option => option.value === saved.geminiModel)) geminiModel.value = saved.geminiModel;
+        if ([...aiProviderOrder.options].some(option => option.value === saved.aiProviderOrder)) aiProviderOrder.value = saved.aiProviderOrder;
         if (typeof saved.reviewChecklist === "string") reviewChecklist.value = saved.reviewChecklist;
       } catch {
         document.querySelector("#settings-message").textContent = "無法讀取先前儲存的設定。";
@@ -833,6 +1159,13 @@
       try {
         localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({
           brandSpecification: brandSpecification.value,
+          aiApiKey: aiApiKey.value.trim(),
+          openrouterModel: openrouterModel.value,
+          customModel: customModel.value.trim(),
+          reasoningEffort: reasoningEffort.value,
+          geminiApiKey: geminiApiKey.value.trim(),
+          geminiModel: geminiModel.value,
+          aiProviderOrder: aiProviderOrder.value,
           reviewChecklist: reviewChecklist.value
         }));
         document.querySelector("#settings-message").textContent = "設定已保存在這台瀏覽器。";
@@ -853,7 +1186,7 @@
       });
     }
 
-    function buildInstruction() {
+    function buildInstruction(showDialog = true) {
       const material = getMaterial();
       const platformHeadings = SETTINGS.platforms.map(platform => `【${platform}】`).join("、");
       const materialLines = SETTINGS.materialFields.map(field => {
@@ -864,8 +1197,8 @@
       const sections = [
         "（這段只要回覆文字，不要建立或修改任何檔案。）",
         `你是【${SETTINGS.brandName}】的小編。請照品牌規格，用素材卡的內容，寫${platformHeadings}的貼文，每個平台一篇。`,
-        "規則：素材卡上沒有的事不要寫；只能在某個平台說的，只寫在那個平台；先不要講的，每一篇都不能寫；還不確定的不要寫，寫完列出來問我。",
-        `回覆格式：每個平台用${platformHeadings}這樣的標題分開。`,
+        "規則：一律用台灣的繁體中文和台灣用語。不要出現簡體字，也不要用大陸用語（例如：視頻→影片、質量→品質、優化→改善、信息→訊息、網絡→網路、用戶→客人或使用者）。素材卡上沒有的事不要寫；只能在某個平台說的，只寫在那個平台；先不要講的，每一篇都不能寫；還不確定的不要寫，寫完列出來問我。",
+        `回覆格式：每個平台用${platformHeadings}這樣的標題分開；若有待確認問題，放在【要問我的】標題下。只輸出貼文與待確認問題，不要輸出檢查清單或檢查過程。`,
         `品牌規格：\n${brandSpecification.value.trim() || "（未填）"}`,
         `素材卡：\n${materialLines.join("\n")}`
       ];
@@ -874,7 +1207,405 @@
       }
       instructionText.value = sections.join("\n\n");
       document.querySelector("#instruction-message").textContent = "";
-      instructionDialog.showModal();
+      if (showDialog) instructionDialog.showModal();
+      return instructionText.value;
+    }
+
+    function withoutAiChecklist(text) {
+      // AI 有時會在貼文後附上自己的檢查結果；只移除獨立成行的檢查段落。
+      const checklistHeading = /^[ \t]*(?:#{1,6}[ \t]*)?(?:【(?:檢查清單|檢查結果|自我檢查|審核清單)】|(?:檢查清單|檢查結果|自我檢查|審核清單)[：:])[ \t]*$/m;
+      const heading = checklistHeading.exec(text);
+      return (heading ? text.slice(0, heading.index) : text).trim();
+    }
+
+    function applyResponse(responseText, fromAi = false) {
+      // 檢查段落是分隔點，但不屬於任何平台的貼文。
+      const headings = [...responseText.matchAll(/【(FB|IG|LINE|要問我的|檢查清單|檢查結果|自我檢查|審核清單)】/g)];
+      const sections = {};
+      headings.forEach((heading, index) => {
+        const end = headings[index + 1]?.index ?? responseText.length;
+        const content = responseText.slice(heading.index + heading[0].length, end);
+        sections[heading[1]] = SETTINGS.platforms.includes(heading[1]) ? withoutAiChecklist(content) : content.trim();
+      });
+      if (SETTINGS.platforms.some(platform => !sections[platform])) {
+        throw new Error("回覆缺少【FB】【IG】【LINE】標題或貼文內容，請檢查後再貼回。");
+      }
+      rememberPlatform();
+      if (fromAi) rememberAiSnapshot();
+      SETTINGS.platforms.forEach(platform => {
+        platformPrevious[platform] = platformPosts[platform];
+        platformPosts[platform] = sections[platform];
+        platformChecked[platform] = null;
+      });
+      editor.value = platformPosts[activePlatform];
+      previousDraft = platformPrevious[activePlatform];
+      checkedContent = null;
+      restoreButton.classList.toggle("is-visible", Boolean(previousDraft));
+      updatePreview();
+      updateProgress();
+      persistDraft();
+      if (fromAi) persistAiPostState();
+      materialStatus.textContent = sections["要問我的"] ? `【要問我的】\n${sections["要問我的"]}` : "已將貼文放入 FB、IG、LINE 分頁。";
+    }
+
+    const AI_USAGE_STORAGE_KEY = "hello-monday-ai-usage-v1";
+
+    function localDateKey() {
+      const today = new Date();
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    }
+
+    function dailyUsage() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(AI_USAGE_STORAGE_KEY) || "null");
+        if (saved?.date === localDateKey()) return saved;
+      } catch { /* 損壞的統計資料可從零重新計算。 */ }
+      return { date: localDateKey(), openrouterCount: 0, openrouterCost: 0, geminiCount: 0 };
+    }
+
+    function updateDailyUsage(provider, cost) {
+      const usage = dailyUsage();
+      if (provider === "OpenRouter") {
+        if (cost === undefined) usage.openrouterCount += 1;
+        else if (Number.isFinite(Number(cost))) usage.openrouterCost += Number(cost);
+      } else if (cost === undefined) usage.geminiCount += 1;
+      try { localStorage.setItem(AI_USAGE_STORAGE_KEY, JSON.stringify(usage)); } catch { /* 不讓統計失敗阻斷寫作。 */ }
+      return usage;
+    }
+
+    function providerError(provider, status, apiMessage) {
+      if (provider === "OpenRouter") {
+        return ({ 401: "金鑰不對", 402: "全班的額度用完了", 404: "模型名稱打錯了", 429: "太多人同時在用" })[status] || `服務暫時無法使用（${status}）`;
+      }
+      if (status === 400 && /api[\s_-]*key/i.test(apiMessage || "")) return "金鑰不對";
+      return ({ 403: "沒有權限", 404: "模型名稱不對，或免費版不能用", 429: "免費額度用完了" })[status] || `服務暫時無法使用（${status}）`;
+    }
+
+    async function requestAi(provider, prompt) {
+      const isOpenRouter = provider === "OpenRouter";
+      const key = (isOpenRouter ? aiApiKey : geminiApiKey).value.trim();
+      if (!key) throw new Error("還沒填金鑰");
+      const messages = Array.isArray(prompt) ? prompt : [{ role: "user", content: prompt }];
+      const body = isOpenRouter ? {
+        model: customModel.value.trim() || openrouterModel.value || AI_MODEL,
+        messages,
+        max_tokens: AI_MAX_TOKENS,
+        reasoning: { effort: reasoningEffort.value, exclude: true },
+        usage: { include: true }
+      } : {
+        model: geminiModel.value,
+        messages
+      };
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+      updateDailyUsage(provider);
+      try {
+        const response = await fetch(isOpenRouter
+          ? "https://openrouter.ai/api/v1/chat/completions"
+          : "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal: controller.signal
+        });
+        let data;
+        try { data = await response.json(); } catch { throw new Error("回覆格式讀取失敗"); }
+        if (Array.isArray(data)) data = data[0];
+        if (!response.ok) throw new Error(providerError(provider, response.status, data?.error?.message || data?.message));
+        if (isOpenRouter && data?.usage?.cost != null && Number.isFinite(Number(data.usage.cost))) {
+          updateDailyUsage(provider, data.usage.cost);
+        }
+        const choice = data?.choices?.[0];
+        const content = typeof choice?.message?.content === "string"
+          ? choice.message.content.replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, "").trim()
+          : "";
+        if (!content) throw new Error(choice?.finish_reason === "length"
+          ? "想太久，字數用完了（⚙ 設定把思考調成少想一點）" : "沒有回傳文字");
+        return { provider, content, usage: data?.usage, truncated: choice?.finish_reason === "length" };
+      } catch (error) {
+        if (error.name === "AbortError") throw new Error("等太久");
+        if (error instanceof TypeError) throw new Error("連不到（檢查網路）");
+        throw error;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function askAi(prompt) {
+      const mode = aiProviderOrder.value;
+      if (!aiApiKey.value.trim() && !geminiApiKey.value.trim()) throw new Error("還沒填金鑰。按 ⚙ 設定。");
+      if (mode === "gemini-only") {
+        try { return await requestAi("Gemini", prompt); }
+        catch (error) { throw new Error(`Gemini：${error.message}`); }
+      }
+      try { return await requestAi("OpenRouter", prompt); }
+      catch (error) {
+        const reason = `OpenRouter：${error.message}`;
+        if (mode === "openrouter-then-gemini" && geminiApiKey.value.trim()) {
+          try {
+            return { ...await requestAi("Gemini", prompt), fallbackNotice: `⚠️ ${reason}。這次改用 Gemini。` };
+          } catch (geminiError) {
+            throw new Error(`${reason}\nGemini：${geminiError.message}`);
+          }
+        }
+        throw new Error(`${reason}${!geminiApiKey.value.trim() ? "；沒有備胎" : ""}`);
+      }
+    }
+
+    function usageMessage(result) {
+      const today = dailyUsage();
+      const tokens = result.usage?.total_tokens != null && Number.isFinite(Number(result.usage.total_tokens))
+        ? Number(result.usage.total_tokens) : "未提供";
+      const cost = result.provider === "OpenRouter" && result.usage?.cost != null && Number.isFinite(Number(result.usage.cost))
+        ? `約 $${Number(result.usage.cost).toFixed(6)}` : "費用未提供";
+      return `這次用 ${result.provider}：${tokens} tokens ${cost}｜今天 OpenRouter ${today.openrouterCount} 次 約 $${today.openrouterCost.toFixed(6)}、Gemini ${today.geminiCount} 次`;
+    }
+
+    async function writeWithAi() {
+      const button = document.querySelector("#write-with-ai");
+      button.disabled = true;
+      button.textContent = "✨ AI 寫作中…";
+      materialStatus.classList.remove("is-error");
+      materialStatus.textContent = "AI 寫作中…";
+      aiUsage.textContent = "";
+      try {
+        const result = await askAi(buildInstruction(false));
+        const notices = [result.fallbackNotice, result.truncated ? "回覆可能被切掉了" : ""].filter(Boolean);
+        try {
+          applyResponse(result.content, true);
+          if (notices.length) materialStatus.textContent = `${notices.join("\n")}\n${materialStatus.textContent}`;
+        } catch {
+          materialStatus.classList.add("is-error");
+          materialStatus.textContent = `${notices.join("\n")}${notices.length ? "\n" : ""}找不到完整的【平台】標題，可用 📥 貼回 手動分。\n\n${result.content}`;
+        }
+        aiUsage.textContent = usageMessage(result);
+      } catch (error) {
+        materialStatus.classList.add("is-error");
+        materialStatus.textContent = error.message;
+      } finally {
+        button.disabled = false;
+        button.textContent = "✨ 讓 AI 寫";
+      }
+    }
+
+    function helperMessages(platform, request, currentPost) {
+      const material = getMaterial();
+      const materialText = SETTINGS.materialFields.map(field => `${field.label}：${material[field.label] || "（未填）"}`).join("\n");
+      const system = `你是【${SETTINGS.brandName}】的小編助理。使用者會叫你修改一篇【${platform}】貼文。只改使用者要求的地方，其他保持原樣；不能加素材卡上沒有的事實；遵守品牌規格；一律用台灣的繁體中文和台灣用語。不要出現簡體字，也不要用大陸用語（例如：視頻→影片、質量→品質、優化→改善、信息→訊息、網絡→網路、用戶→客人或使用者）。只回覆改好以後的整篇貼文，不要解釋、不要加標題。\n\n品牌規格：\n${brandSpecification.value.trim() || "（未填）"}\n\n素材卡：\n${materialText}`;
+      return [
+        { role: "system", content: system },
+        ...helperHistory[platform].slice(-8).map(message => ({ role: message.role, content: message.content })),
+        { role: "user", content: `目前的【${platform}】貼文：${currentPost}。請這樣改：${request}` }
+      ];
+    }
+
+    async function sendHelper(request) {
+      const status = document.querySelector("#helper-status");
+      const instruction = request.trim();
+      if (!editor.value.trim()) {
+        status.textContent = "先讓 AI 寫一篇";
+        return;
+      }
+      if (!instruction) {
+        status.textContent = "請先輸入想怎麼修改。";
+        return;
+      }
+      const platform = activePlatform;
+      const original = editor.value;
+      const revision = postContextRevision;
+      const controls = [document.querySelector("#helper-send"), ...document.querySelectorAll(".helper-shortcut")];
+      controls.forEach(button => { button.disabled = true; });
+      status.classList.remove("is-error");
+      status.textContent = "AI 寫作中…";
+      try {
+        const result = await askAi(helperMessages(platform, instruction, original));
+        const revisedPost = withoutAiChecklist(result.content);
+        if (!revisedPost) throw new Error("AI 只回了檢查清單，沒有改好的貼文；請重新送出。");
+        rememberPlatform();
+        if (postContextRevision !== revision || platformPosts[platform] !== original) {
+          throw new Error("貼文已變更，這次回覆沒有覆蓋原文；請重新送出。");
+        }
+        rememberAiSnapshot();
+        platformPosts[platform] = revisedPost;
+        platformChecked[platform] = null;
+        if (activePlatform === platform) {
+          editor.value = revisedPost;
+          checkedContent = null;
+          updatePreview();
+        }
+        helperHistory[platform].push({ role: "user", content: instruction }, { role: "assistant", content: revisedPost });
+        helperHistory[platform] = helperHistory[platform].slice(-8);
+        renderHelperHistory();
+        persistDraft();
+        const savedWithPost = persistAiPostState();
+        document.querySelector("#helper-input").value = "";
+        status.textContent = [result.fallbackNotice, result.truncated ? "回覆可能被切掉了" : "", `已更新 ${platform} 貼文。${usageMessage(result)}`, savedWithPost ? "" : "無法同步到存檔；草稿已暫存。"].filter(Boolean).join("\n");
+      } catch (error) {
+        status.classList.add("is-error");
+        status.textContent = error.message;
+      } finally {
+        controls.forEach(button => { button.disabled = false; });
+      }
+    }
+
+    function reviewMessages() {
+      const material = getMaterial();
+      const materialText = SETTINGS.materialFields.map(field => `${field.label}：${material[field.label] || "（未填）"}`).join("\n");
+      const checklist = reviewChecklist.value.trim() || [
+        "1. 日期價格對不對",
+        "2. 有沒有多加的事",
+        "3. 只能在某平台講的有沒有跑掉",
+        "4. 先不要講的有沒有出現",
+        "5. 有沒有不能用的字",
+        "6. 有沒有簡體字或大陸用語"
+      ].join("\n");
+      const posts = SETTINGS.platforms.map(platform => `【${platform}】\n${platformPosts[platform].trim() || "（未填）"}`).join("\n\n");
+      return [
+        { role: "system", content: `你是【${SETTINGS.brandName}】的審核官，專門挑毛病，不負責誇獎。把每一篇貼文照檢查清單一條一條對。✅ 符合；❌ 不符合（寫出哪一句有問題、該怎麼改）；⚠️ 要靠人判斷的，先給意見。回覆格式：【平台名稱】換行，然後每條一行「編號 符號 一句話」，最後【總結】列出要人工確認的事。不管清單有沒有寫，都另外檢查有沒有簡體字或大陸用語。報告也用台灣繁體中文寫。` },
+        { role: "user", content: `品牌規格全文：\n${brandSpecification.value.trim() || "（未填）"}\n\n素材卡全文：\n${materialText}\n\n檢查清單：\n${checklist}\n\n每個平台的貼文：\n${posts}` }
+      ];
+    }
+
+    function showReviewReport(report) {
+      const container = document.querySelector("#review-report");
+      const replies = document.querySelector("#review-replies");
+      container.replaceChildren();
+      replies.replaceChildren();
+      reviewIssues = [];
+      reviewBasePosts = { ...platformPosts };
+      reviewContextRevision = postContextRevision;
+      let reportPlatform = null;
+      report.split(/\r?\n/).forEach(text => {
+        const heading = text.trim().match(/^(?:#{1,6}\s*)?(?:【(FB|IG|LINE|總結)】|(FB|IG|LINE|總結))[：:]?$/);
+        if (heading) {
+          const name = heading[1] || heading[2];
+          reportPlatform = SETTINGS.platforms.includes(name) ? name : null;
+        }
+        const line = document.createElement("div");
+        line.className = `review-line${text.includes("❌") ? " is-fail" : text.includes("⚠") ? " is-warning" : ""}`;
+        line.textContent = text || "\u00a0";
+        container.append(line);
+        if (!text.includes("❌") && !text.includes("⚠")) return;
+        const item = document.createElement("label");
+        item.className = "review-reply";
+        const title = document.createElement("span");
+        title.textContent = `${reportPlatform || "全平台"}｜${text.trim()}`;
+        const input = document.createElement("textarea");
+        input.placeholder = "請寫你的決定或正確資訊；不處理可留白";
+        item.append(title, input);
+        replies.append(item);
+        reviewIssues.push({ platform: reportPlatform, issue: text.trim(), input });
+      });
+      replies.hidden = !reviewIssues.length;
+      document.querySelector("#apply-review-replies").hidden = !reviewIssues.length;
+      document.querySelector("#review-reply-status").textContent = "";
+      document.querySelector("#review-dialog").showModal();
+    }
+
+    function reviewRevisionMessages(answers, targets) {
+      const material = getMaterial();
+      const materialText = SETTINGS.materialFields.map(field => `${field.label}：${material[field.label] || "（未填）"}`).join("\n");
+      const instructions = answers.map(({ platform, issue, answer }) => `${platform ? `【${platform}】` : "【全平台】"} ${issue}\n我的回覆：${answer}`).join("\n\n");
+      const posts = targets.map(platform => `【${platform}】\n${reviewBasePosts[platform]}`).join("\n\n");
+      return [
+        { role: "system", content: `你是【${SETTINGS.brandName}】的小編。依照使用者對檢查報告的回覆修改貼文，只改使用者明確回覆的問題，其他文字保持原樣。不能加素材卡沒有的事實；遵守品牌規格與台灣繁體中文用語。只回覆改好後的完整貼文，每個平台用獨立一行的【FB】【IG】【LINE】標題分開；只輸出指定平台，不要輸出檢查報告、說明或檢查清單。` },
+        { role: "user", content: `品牌規格：\n${brandSpecification.value.trim() || "（未填）"}\n\n素材卡：\n${materialText}\n\n需要修改的貼文：\n${posts}\n\n檢查官指出的問題與我的回覆：\n${instructions}\n\n請只回覆這些平台的完整修正版貼文：${targets.map(platform => `【${platform}】`).join("、")}` }
+      ];
+    }
+
+    function parseReviewRevisions(text, targets) {
+      const headings = [...text.matchAll(/^[ \t]*(?:#{1,6}[ \t]*)?【(FB|IG|LINE|要問我的|檢查清單|檢查結果|自我檢查|審核清單)】[ \t]*/gm)];
+      const revisions = {};
+      headings.forEach((heading, index) => {
+        if (!targets.includes(heading[1])) return;
+        const end = headings[index + 1]?.index ?? text.length;
+        revisions[heading[1]] = withoutAiChecklist(text.slice(heading.index + heading[0].length, end));
+      });
+      if (targets.some(platform => !revisions[platform])) throw new Error("AI 沒有回傳完整的指定平台貼文，原文未變動；請重新送出。");
+      return revisions;
+    }
+
+    async function applyReviewReplies() {
+      const status = document.querySelector("#review-reply-status");
+      const answers = reviewIssues.map(({ platform, issue, input }) => ({ platform, issue, answer: input.value.trim() })).filter(item => item.answer);
+      if (!answers.length) {
+        status.textContent = "請至少回覆一項問題。";
+        return;
+      }
+      const targets = SETTINGS.platforms.filter(platform => reviewBasePosts[platform].trim() && answers.some(item => !item.platform || item.platform === platform));
+      if (!targets.length) {
+        status.textContent = "沒有可修改的貼文。";
+        return;
+      }
+      const button = document.querySelector("#apply-review-replies");
+      button.disabled = true;
+      status.classList.remove("is-error");
+      status.textContent = "AI 修改中…";
+      try {
+        const result = await askAi(reviewRevisionMessages(answers, targets));
+        const revisions = parseReviewRevisions(result.content, targets);
+        rememberPlatform();
+        if (postContextRevision !== reviewContextRevision || SETTINGS.platforms.some(platform => platformPosts[platform] !== reviewBasePosts[platform])) {
+          throw new Error("檢查後貼文已變更，這次回覆沒有覆蓋原文；請重新檢查。");
+        }
+        rememberAiSnapshot();
+        targets.forEach(platform => {
+          platformPrevious[platform] = platformPosts[platform];
+          platformPosts[platform] = revisions[platform];
+          platformChecked[platform] = null;
+        });
+        editor.value = platformPosts[activePlatform];
+        previousDraft = platformPrevious[activePlatform];
+        checkedContent = null;
+        restoreButton.classList.toggle("is-visible", Boolean(previousDraft));
+        updatePreview();
+        updateProgress();
+        persistDraft();
+        const savedWithPost = persistAiPostState();
+        document.querySelector("#review-dialog").close();
+        document.querySelector("#review-status").textContent = [result.fallbackNotice, result.truncated ? "回覆可能被切掉了" : "", `已更新 ${targets.join("、")} 貼文。${usageMessage(result)}`, savedWithPost ? "" : "無法同步到存檔；草稿已暫存。"].filter(Boolean).join("\n");
+      } catch (error) {
+        status.classList.add("is-error");
+        status.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    async function reviewWithAi() {
+      rememberPlatform();
+      const status = document.querySelector("#review-status");
+      if (SETTINGS.platforms.every(platform => !platformPosts[platform].trim())) {
+        status.textContent = "還沒有貼文可以檢查";
+        return;
+      }
+      const button = document.querySelector("#review-with-ai");
+      button.disabled = true;
+      button.textContent = "🔍 檢查中…";
+      status.classList.remove("is-error");
+      status.textContent = "AI 檢查中…";
+      try {
+        const result = await askAi(reviewMessages());
+        document.querySelector("#review-note").textContent = [result.fallbackNotice, result.truncated ? "回覆可能被切掉了" : "", usageMessage(result)].filter(Boolean).join("\n");
+        showReviewReport(result.content);
+        status.textContent = "檢查報告已開啟。";
+      } catch (error) {
+        status.classList.add("is-error");
+        status.textContent = error.message;
+      } finally {
+        button.disabled = false;
+        button.textContent = "🔍 檢查官";
+      }
+    }
+
+    function pasteResponse() {
+      try {
+        applyResponse(document.querySelector("#paste-text").value);
+        document.querySelector("#paste-message").textContent = "";
+        pasteDialog.close();
+      } catch (error) {
+        document.querySelector("#paste-message").textContent = error.message;
+      }
     }
 
     async function copyInstruction() {
@@ -893,6 +1624,21 @@
     }
 
     document.querySelector("#material-fields").addEventListener("submit", event => event.preventDefault());
+    imageInput.addEventListener("change", async () => {
+      const files = [...imageInput.files].filter(file => file.type.startsWith("image/"));
+      if (!files.length) return;
+      if (activePlatform === "FB") platformImages.FB = [files[0]];
+      if (activePlatform === "IG") platformImages.IG.push(...files);
+      imageIndexes[activePlatform] = activePlatform === "IG" ? platformImages.IG.length - files.length : 0;
+      imageInput.value = "";
+      updatePreview();
+      try {
+        await imageStore("put", "draft", { FB: platformImages.FB, IG: platformImages.IG });
+        imageMessage.textContent = "圖片已暫存；按「💾 存檔」可跟這篇貼文一起保存。";
+      } catch {
+        imageMessage.textContent = "無法暫存圖片，請檢查瀏覽器儲存空間。";
+      }
+    });
     document.querySelector("#material-fields").addEventListener("input", () => {
       invalidateCheck();
       updatePreview();
@@ -916,6 +1662,17 @@
     document.querySelector("#new-post").addEventListener("click", newPost);
     document.querySelector("#prepublish-check").addEventListener("click", runPrepublishCheck);
     document.querySelector("#copy-post").addEventListener("click", copyPost);
+    document.querySelector("#review-with-ai").addEventListener("click", reviewWithAi);
+    document.querySelector("#apply-review-replies").addEventListener("click", applyReviewReplies);
+    document.querySelector("#close-review").addEventListener("click", () => document.querySelector("#review-dialog").close());
+    document.querySelector("#undo-ai").addEventListener("click", undoAiChange);
+    document.querySelectorAll(".helper-shortcut").forEach(button => {
+      button.addEventListener("click", () => sendHelper(button.textContent));
+    });
+    document.querySelector("#helper-form").addEventListener("submit", event => {
+      event.preventDefault();
+      sendHelper(document.querySelector("#helper-input").value);
+    });
     restoreButton.addEventListener("click", () => {
       if (!previousDraft) return;
       const currentDraft = editor.value;
@@ -930,11 +1687,16 @@
     document.querySelector("#open-settings").addEventListener("click", () => settingsDialog.showModal());
     document.querySelector("#close-settings").addEventListener("click", () => settingsDialog.close());
     document.querySelector("#save-settings").addEventListener("click", saveWorkspaceSettings);
-    document.querySelector("#build-instruction").addEventListener("click", buildInstruction);
+    document.querySelector("#build-instruction").addEventListener("click", () => buildInstruction());
+    document.querySelector("#write-with-ai").addEventListener("click", writeWithAi);
+    document.querySelector("#paste-response").addEventListener("click", () => pasteDialog.showModal());
+    document.querySelector("#close-paste").addEventListener("click", () => pasteDialog.close());
+    document.querySelector("#apply-paste").addEventListener("click", pasteResponse);
     document.querySelector("#close-instruction").addEventListener("click", () => instructionDialog.close());
     document.querySelector("#copy-instruction").addEventListener("click", copyInstruction);
     loadWorkspaceSettings();
     loadDraft();
+    loadImages("draft").catch(() => { imageMessage.textContent = "無法讀取暫存圖片。"; });
     updateProgress();
   </script>
 </body>
