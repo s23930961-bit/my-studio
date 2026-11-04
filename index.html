@@ -216,13 +216,53 @@
     .phone-screen.is-fb .phone-profile { border-bottom: 0; }
     .phone-screen.is-fb .phone-copy { padding-top: 0; }
     .phone-screen.is-fb .phone-art { aspect-ratio: 1.65 / 1; }
+    .phone-screen.is-fb .phone-art:has(.preview-image) { aspect-ratio: 1 / 1; }
     .phone-screen.is-fb .phone-actions { letter-spacing: 0; display: flex; justify-content: space-around; border-top: 1px solid var(--line); }
     .phone-screen.is-ig .phone-actions { border-bottom: 0; }
+    .phone-screen.is-ig .phone-art:has(.ig-carousel) { display: block; }
+    .ig-carousel { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-inline: contain; }
+    .ig-carousel::-webkit-scrollbar { display: none; }
+    .ig-carousel .preview-image { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; }
+    .ig-dots { display: flex; justify-content: center; gap: 6px; padding: 8px 0 2px; }
+    .ig-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+    .ig-dot.is-current { background: var(--brand-deep); }
     .phone-screen.is-line { background: #c9dbea; }
     .phone-screen.is-line .line-chat { display: flex; align-items: flex-start; gap: 9px; padding: 22px 12px; }
     .phone-screen.is-line .line-bubble { max-width: calc(100% - 48px); padding: 12px; border-radius: 4px 14px 14px 14px; background: #fff; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .86rem; line-height: 1.5; }
+    .phone-screen.is-line .line-messages { flex: 1; min-width: 0; }
+    .phone-screen.is-line .line-bubble { max-width: 100%; }
+    .phone-screen.is-line .line-image-bubble { width: 100%; aspect-ratio: 1040 / 1040; margin-bottom: 8px; border-radius: 4px 14px 14px 14px; overflow: hidden; background: #fff; }
     .phone-screen.is-line .avatar { flex: none; }
     .preview-image { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .post-pictures { padding: 18px 20px; border-top: 1px solid var(--line); }
+    .post-pictures h3 { margin: 0 0 12px; font-size: 1rem; }
+    .picture-upload { display: inline-block; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; cursor: pointer; }
+    .picture-upload input { display: none; }
+    .picture-thumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .picture-thumb { position: relative; width: 76px; height: 76px; }
+    .picture-thumb > button:first-child { width: 100%; height: 100%; padding: 0; border: 3px solid transparent; border-radius: 9px; overflow: hidden; cursor: pointer; }
+    .picture-thumb.is-main > button:first-child { border-color: var(--brand-deep); }
+    .picture-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .picture-remove { position: absolute; top: -7px; right: -7px; width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--ink); color: white; cursor: pointer; }
+    .storage-usage { margin: 12px 0 0; font-size: .75rem; color: var(--muted); white-space: pre-line; }
+    .storage-usage.is-error { color: #b42318; }
+    .picture-generator { display: grid; gap: 8px; margin-top: 14px; }
+    .picture-generator label { font-size: .84rem; font-weight: 700; }
+    .picture-generator textarea { width: 100%; min-height: 80px; padding: 10px; border: 1px solid var(--line); border-radius: 9px; font: inherit; resize: vertical; }
+    .picture-generator-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .picture-generator-actions label { display: inline-flex; align-items: center; gap: 5px; }
+    .picture-generator-actions select { padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); }
+    .picture-generator button { justify-self: start; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); cursor: pointer; }
+    .picture-generator button:disabled { opacity: .55; cursor: wait; }
+    .picture-generation-status { margin: 0; font-size: .8rem; white-space: pre-line; }
+    .picture-generation-status.is-error { color: #b42318; }
+    .picture-text-settings { display: grid; gap: 8px; margin-top: 14px; }
+    .picture-text-settings label { display: grid; gap: 4px; font-size: .84rem; font-weight: 700; }
+    .picture-text-settings input, .picture-text-settings select { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); }
+    .picture-text-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .picture-download { justify-self: start; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); cursor: pointer; }
+    .picture-download-status { margin: 0; font-size: .8rem; }
+    .picture-download-status.is-error { color: #b42318; }
     .preview-image-controls { display: flex; align-items: center; justify-content: space-between; padding: 7px 12px; font-size: .8rem; }
     .preview-image-controls button { border: 0; background: transparent; color: var(--ink); cursor: pointer; font-size: 1.1rem; }
     .image-upload { display: block; margin: 12px 20px 0; font-size: .82rem; }
@@ -319,6 +359,34 @@
         <p class="material-status" id="material-status" role="status" aria-live="polite"></p>
         <p class="material-status" id="ai-usage" role="status" aria-live="polite"></p>
       </div>
+      <section class="post-pictures" aria-labelledby="post-pictures-heading">
+        <h3 id="post-pictures-heading">🖼 這篇的圖</h3>
+        <label class="picture-upload" for="picture-input">📤 上傳<input id="picture-input" type="file" accept="image/*" multiple></label>
+        <div class="picture-generator">
+          <label for="picture-prompt">圖片描述（要畫什麼）</label>
+          <textarea id="picture-prompt" placeholder="寫下希望畫出的畫面"></textarea>
+          <div class="picture-generator-actions">
+            <button id="generate-picture" type="button">🎨 生圖</button>
+            <label for="use-main-reference"><input id="use-main-reference" type="checkbox">用主圖當參考</label>
+            <label for="picture-count">張數<select id="picture-count"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option></select></label>
+            <button id="imagine-and-generate" type="button">🪄 AI 想圖再畫</button>
+          </div>
+          <p class="picture-generation-status" id="picture-generation-status" role="status" aria-live="polite"></p>
+        </div>
+        <div class="picture-thumbs" id="picture-thumbs"></div>
+        <div class="picture-text-settings" id="picture-text-settings">
+          <label for="picture-overlay-text">加字／圖上的字<input id="picture-overlay-text" type="text" placeholder="不填就只顯示圖片"></label>
+          <div class="picture-text-options">
+            <label for="picture-text-position">位置<select id="picture-text-position"><option value="top">上</option><option value="middle">中</option><option value="bottom">下</option></select></label>
+            <label for="picture-text-size">大小<select id="picture-text-size"><option value="small">小</option><option value="medium" selected>中</option><option value="large">大</option></select></label>
+            <label for="picture-text-style">樣式<select id="picture-text-style"><option value="white-brand">白底主色字</option><option value="black-white">黑底白字</option><option value="white-shadow">白字陰影</option></select></label>
+          </div>
+          <label for="picture-download-size">下載尺寸<select id="picture-download-size"></select></label>
+          <button class="picture-download" id="download-picture" type="button">⬇ 下載這張圖</button>
+          <p class="picture-download-status" id="picture-download-status" role="status" aria-live="polite"></p>
+        </div>
+        <p class="storage-usage" id="storage-usage" role="status" aria-live="polite"></p>
+      </section>
     </section>
 
     <section class="panel" aria-labelledby="editor-heading">
@@ -373,11 +441,6 @@
           <div class="phone-screen" id="phone-screen"></div>
         </div>
       </div>
-      <label class="image-upload" id="image-upload-label" for="preview-image-input">貼文圖片
-        <input id="preview-image-input" type="file" accept="image/*">
-      </label>
-      <div class="preview-image-controls" id="preview-image-controls"></div>
-      <p class="material-status" id="image-message" role="status" aria-live="polite"></p>
     </aside>
   </main>
 
@@ -399,6 +462,18 @@
         </select></label>
         <label for="custom-model">或自己打模型名稱<input id="custom-model" type="text" autocomplete="off" placeholder="有填就優先使用"></label>
         <label for="reasoning-effort">思考<select id="reasoning-effort"><option value="low">少想一點 low</option><option value="medium">多想一點 medium</option><option value="high">想很久 high</option></select></label>
+      </fieldset>
+      <fieldset class="ai-settings-group"><legend>生圖</legend>
+        <label for="picture-specification">圖片規格<textarea id="picture-specification" placeholder="在這裡寫圖片風格、構圖或其他畫面規格"></textarea></label>
+        <label for="image-model">生圖模型<select id="image-model">
+          <option value="bytedance-seed/seedream-5-0-flash">bytedance-seed/seedream-5-0-flash</option>
+          <option value="qwen/qwen-image-2.1-turbo">qwen/qwen-image-2.1-turbo</option>
+          <option value="qwen/qwen-image-3">qwen/qwen-image-3</option>
+          <option value="bytedance-seed/seedream-5-0-pro">bytedance-seed/seedream-5-0-pro</option>
+          <option value="google/gemini-3.1-flash-lite-image">google/gemini-3.1-flash-lite-image</option>
+        </select></label>
+        <label for="custom-image-model">或自己打生圖模型名稱<input id="custom-image-model" type="text" autocomplete="off" placeholder="有填就優先使用"></label>
+        <p>使用第一組 OpenRouter 金鑰。</p>
       </fieldset>
       <fieldset class="ai-settings-group"><legend>第二組 Gemini</legend>
         <label for="gemini-api-key">Gemini 金鑰<input id="gemini-api-key" type="password" autocomplete="off" placeholder="貼上 Gemini API 金鑰"></label>
@@ -513,6 +588,15 @@
       tabContainer.append(tab);
     });
 
+    const PIC_SIZE = { FB: [1080, 1080], IG: [1080, 1350], LINE: [1040, 1040], Threads: [1080, 1350] };
+    const SIZES = {
+      platform: { label: "跟著平台", size: null },
+      square: { label: "方形", size: [1080, 1080] },
+      portrait: { label: "直式", size: [1080, 1350] },
+      story: { label: "限動", size: [1080, 1920] },
+      lineAvatar: { label: "LINE 大頭貼", size: [640, 640] },
+      lineBroadcast: { label: "LINE 群發圖", size: [1040, 1040] }
+    };
     const STORAGE_KEY = "hello-monday-social-draft-v1";
     const POSTS_STORAGE_KEY = "hello-monday-saved-posts-v1";
     const POST_STATUSES = ["草稿", "等老闆確認", "完成"];
@@ -522,12 +606,26 @@
     const progressSteps = [...document.querySelectorAll("#progress-steps li")];
     const restoreButton = document.querySelector("#restore-previous");
     const phoneScreen = document.querySelector("#phone-screen");
-    const imageInput = document.querySelector("#preview-image-input");
-    const imageControls = document.querySelector("#preview-image-controls");
-    const imageMessage = document.querySelector("#image-message");
-    const platformImages = { FB: [], IG: [] };
-    const imageIndexes = { FB: 0, IG: 0 };
-    let imageUrls = [];
+    const imageInput = document.querySelector("#picture-input");
+    const imageThumbs = document.querySelector("#picture-thumbs");
+    const storageUsage = document.querySelector("#storage-usage");
+    const overlayText = document.querySelector("#picture-overlay-text");
+    const textPosition = document.querySelector("#picture-text-position");
+    const textSize = document.querySelector("#picture-text-size");
+    const textStyle = document.querySelector("#picture-text-style");
+    const downloadSize = document.querySelector("#picture-download-size");
+    const downloadStatus = document.querySelector("#picture-download-status");
+    Object.entries(SIZES).forEach(([value, option]) => {
+      const element = document.createElement("option");
+      element.value = value;
+      element.textContent = option.size ? `${option.label} ${option.size[0]}×${option.size[1]}` : option.label;
+      downloadSize.append(element);
+    });
+    let postImages = []; // 畫面用 { id, src }；localStorage 只保存 id。
+    let mainImageIndex = 0;
+    let previewRenderRevision = 0;
+    let storageFailed = false;
+    let storageUsageRevision = 0;
     const platformPosts = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, ""]));
     const platformVersions = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, 0]));
     const platformPrevious = Object.fromEntries(SETTINGS.platforms.map(platform => [platform, ""]));
@@ -599,21 +697,22 @@
       showFeedback("已切換貼文版本；再按一次可換回來。", "success");
     }
 
-    function openImageDatabase() {
+    function openImageWarehouse() {
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open("hello-monday-post-images-v1", 1);
-        request.onupgradeneeded = () => request.result.createObjectStore("images");
+        const request = indexedDB.open("studio-images", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("imgs");
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
     }
 
-    async function imageStore(action, key, value) {
-      const database = await openImageDatabase();
+    async function imageWarehouse(action, key, value) {
+      const database = await openImageWarehouse();
       return new Promise((resolve, reject) => {
-        const transaction = database.transaction("images", action === "get" ? "readonly" : "readwrite");
-        const store = transaction.objectStore("images");
-        const request = action === "put" ? store.put(value, key) : action === "delete" ? store.delete(key) : store.get(key);
+        const transaction = database.transaction("imgs", action === "get" || action === "count" ? "readonly" : "readwrite");
+        const store = transaction.objectStore("imgs");
+        const request = action === "put" ? store.put(value, key)
+          : action === "delete" ? store.delete(key) : action === "count" ? store.count() : store.get(key);
         let result;
         request.onsuccess = () => { result = request.result; };
         transaction.oncomplete = () => { database.close(); resolve(result); };
@@ -621,32 +720,327 @@
       });
     }
 
-    function clearImageUrls() {
-      imageUrls.forEach(url => URL.revokeObjectURL(url));
-      imageUrls = [];
+    function newImageId() {
+      return window.crypto?.randomUUID?.() || `img-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     }
 
-    async function loadImages(key) {
-      const saved = await imageStore("get", key);
-      clearImageUrls();
-      platformImages.FB = Array.isArray(saved?.FB) ? saved.FB : [];
-      platformImages.IG = Array.isArray(saved?.IG) ? saved.IG : [];
-      imageIndexes.FB = 0;
-      imageIndexes.IG = 0;
-      updatePreview();
+    async function storeNewImages(sources) {
+      const stored = [];
+      try {
+        for (const src of sources) {
+          const id = newImageId();
+          await imageWarehouse("put", id, src);
+          stored.push({ id, src });
+        }
+        return stored;
+      } catch (error) {
+        await Promise.allSettled(stored.map(image => imageWarehouse("delete", image.id)));
+        throw error;
+      }
+    }
+
+    async function hydrateImageIds(ids) {
+      if (!Array.isArray(ids)) return [];
+      const entries = await Promise.all(ids.filter(id => typeof id === "string").map(async id => ({
+        id, src: id.startsWith("data:image/") ? id : await imageWarehouse("get", id)
+      })));
+      return entries.filter(image => typeof image.src === "string" && image.src.startsWith("data:image/"));
+    }
+
+    async function migrateLegacyImages() {
+      const draft = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      const posts = JSON.parse(localStorage.getItem(POSTS_STORAGE_KEY) || "[]");
+      const known = new Map();
+      async function migrateList(record) {
+        if (!record || !Array.isArray(record.images)) return false;
+        let changed = false;
+        for (let index = 0; index < record.images.length; index += 1) {
+          const src = record.images[index];
+          if (typeof src !== "string" || !src.startsWith("data:image/")) continue;
+          let id = known.get(src);
+          if (!id) {
+            id = newImageId();
+            await imageWarehouse("put", id, src);
+            known.set(src, id);
+          }
+          record.images[index] = id;
+          changed = true;
+        }
+        return changed;
+      }
+      if (Array.isArray(posts)) {
+        let changed = false;
+        for (const record of posts) changed = await migrateList(record) || changed;
+        if (changed) localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+      }
+      if (await migrateList(draft)) localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+    }
+
+    async function updateStorageUsage(error = false) {
+      const revision = ++storageUsageRevision;
+      storageFailed = error;
+      storageUsage.classList.toggle("is-error", error);
+      if (error) {
+        storageUsage.textContent = "⚠️ 儲存空間不足，剛剛的沒存到！";
+        return;
+      }
+      try {
+        let bytes = 0;
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index);
+          bytes += (key.length + localStorage.getItem(key).length) * 2;
+        }
+        const count = await imageWarehouse("count");
+        let estimate;
+        try { estimate = await navigator.storage?.estimate?.(); } catch { /* 部分瀏覽器不提供用量估計。 */ }
+        if (revision !== storageUsageRevision) return;
+        const total = estimate?.usage != null ? `${(estimate.usage / 1024 / 1024).toFixed(2)} MB` : "無法估算";
+        storageUsage.textContent = `瀏覽器的抽屜：已用 ${(bytes / 1024 / 1024).toFixed(2)} MB\n圖片倉庫：${count} 張，這個網站約用 ${total}`;
+      } catch {
+        if (revision !== storageUsageRevision) return;
+        storageUsage.textContent = "無法讀取儲存空間用量。";
+      }
+    }
+
+    function renderPictures() {
+      imageThumbs.replaceChildren();
+      postImages.forEach(({ id, src }, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = `picture-thumb ${index === mainImageIndex ? "is-main" : ""}`.trim();
+        const select = document.createElement("button");
+        select.type = "button";
+        select.setAttribute("aria-label", `選第 ${index + 1} 張當主圖`);
+        select.setAttribute("aria-pressed", String(index === mainImageIndex));
+        const image = document.createElement("img");
+        image.src = src;
+        image.alt = `第 ${index + 1} 張圖`;
+        select.append(image);
+        select.addEventListener("click", () => {
+          const previous = mainImageIndex;
+          mainImageIndex = index;
+          if (!persistDraft()) mainImageIndex = previous;
+          renderPictures();
+          updatePreview();
+        });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "picture-remove";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", `刪除第 ${index + 1} 張圖`);
+        remove.addEventListener("click", async () => {
+          const previousImages = postImages;
+          const previousIndex = mainImageIndex;
+          postImages = postImages.filter((_, imageIndex) => imageIndex !== index);
+          mainImageIndex = postImages.length ? Math.min(index < previousIndex ? previousIndex - 1 : previousIndex, postImages.length - 1) : 0;
+          if (!persistDraft()) { postImages = previousImages; mainImageIndex = previousIndex; }
+          else {
+            try {
+              const savedPosts = readSavedPosts();
+              const inSavedPost = savedPosts.some(post => Array.isArray(post.images) && (post.images.includes(id) || post.images.includes(src)));
+              if (!inSavedPost) await imageWarehouse("delete", id);
+            } catch {
+              showFeedback("圖片已從這篇移除，但倉庫清理失敗。", "warning");
+            }
+          }
+          renderPictures();
+          updatePreview();
+          updateStorageUsage();
+        });
+        wrapper.append(select, remove);
+        imageThumbs.append(wrapper);
+      });
+      updateStorageUsage(storageFailed);
+    }
+
+    function resizePicture(file) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        const isDataUrl = typeof file === "string";
+        const url = isDataUrl ? file : URL.createObjectURL(file);
+        image.onload = () => {
+          if (!isDataUrl) URL.revokeObjectURL(url);
+          const scale = Math.min(1, 1080 / Math.max(image.naturalWidth, image.naturalHeight));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const context = canvas.getContext("2d");
+          if (!context) { reject(new Error("無法處理圖片")); return; }
+          context.fillStyle = "#fff";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.85));
+        };
+        image.onerror = () => { if (!isDataUrl) URL.revokeObjectURL(url); reject(new Error("無法讀取圖片")); };
+        image.src = url;
+      });
+    }
+
+    function pictureTextSettings() {
+      return {
+        text: overlayText.value,
+        position: textPosition.value,
+        size: textSize.value,
+        style: textStyle.value,
+        downloadSize: downloadSize.value
+      };
+    }
+
+    function applyPictureTextSettings(saved = {}) {
+      saved = saved && typeof saved === "object" ? saved : {};
+      overlayText.value = typeof saved.text === "string" ? saved.text : "";
+      textPosition.value = ["top", "middle", "bottom"].includes(saved.position) ? saved.position : "top";
+      textSize.value = ["small", "medium", "large"].includes(saved.size) ? saved.size : "medium";
+      textStyle.value = ["white-brand", "black-white", "white-shadow"].includes(saved.style) ? saved.style : "white-brand";
+      downloadSize.value = Object.hasOwn(SIZES, saved.downloadSize) ? saved.downloadSize : "platform";
+    }
+
+    function loadPicture(src) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("圖片無法讀取"));
+        image.src = src;
+      });
+    }
+
+    async function composePicture(src, width, height, settings) {
+      const image = await loadPicture(src);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("無法建立圖片畫布");
+      const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+      const sourceWidth = width / scale;
+      const sourceHeight = height / scale;
+      context.drawImage(image, (image.naturalWidth - sourceWidth) / 2, (image.naturalHeight - sourceHeight) / 2,
+        sourceWidth, sourceHeight, 0, 0, width, height);
+      const content = settings.text.replace(/\s+/g, " ").trim();
+      if (!content) return canvas;
+
+      const fontSize = Math.round(width * ({ small: .045, medium: .065, large: .085 }[settings.size] || .065));
+      const lineHeight = fontSize * 1.3;
+      const fontFamily = getComputedStyle(document.body).fontFamily;
+      context.font = `700 ${fontSize}px ${fontFamily}`;
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      const limit = width * .84;
+      const lines = [];
+      let line = "";
+      for (const character of Array.from(content)) {
+        if (context.measureText(line + character).width > limit && line) {
+          lines.push(line);
+          line = character;
+          if (lines.length === 3) break;
+        } else line += character;
+      }
+      if (lines.length < 3 && line) lines.push(line);
+      if (lines.length === 3 && lines.join("").length < Array.from(content).length) {
+        let last = lines[2];
+        while (last && context.measureText(`${last}…`).width > limit) last = last.slice(0, -1);
+        lines[2] = `${last}…`;
+      }
+      const blockHeight = lines.length * lineHeight;
+      const centerY = settings.position === "top" ? height * .08 + blockHeight / 2
+        : settings.position === "bottom" ? height * .92 - blockHeight / 2 : height / 2;
+      const maxLineWidth = Math.max(...lines.map(value => context.measureText(value).width));
+      if (settings.style !== "white-shadow") {
+        const paddingX = fontSize * .55;
+        const paddingY = fontSize * .35;
+        const boxWidth = Math.min(width * .92, maxLineWidth + paddingX * 2);
+        const boxHeight = blockHeight + paddingY * 2;
+        const left = (width - boxWidth) / 2;
+        const top = centerY - boxHeight / 2;
+        const radius = fontSize * .35;
+        context.fillStyle = settings.style === "black-white" ? "rgba(0, 0, 0, .72)" : "rgba(255, 255, 255, .84)";
+        context.beginPath();
+        context.moveTo(left + radius, top);
+        context.lineTo(left + boxWidth - radius, top);
+        context.quadraticCurveTo(left + boxWidth, top, left + boxWidth, top + radius);
+        context.lineTo(left + boxWidth, top + boxHeight - radius);
+        context.quadraticCurveTo(left + boxWidth, top + boxHeight, left + boxWidth - radius, top + boxHeight);
+        context.lineTo(left + radius, top + boxHeight);
+        context.quadraticCurveTo(left, top + boxHeight, left, top + boxHeight - radius);
+        context.lineTo(left, top + radius);
+        context.quadraticCurveTo(left, top, left + radius, top);
+        context.fill();
+      }
+      context.fillStyle = settings.style === "white-brand"
+        ? getComputedStyle(document.documentElement).getPropertyValue("--brand").trim() : "#fff";
+      if (settings.style === "white-shadow") {
+        context.shadowColor = "rgba(0, 0, 0, .9)";
+        context.shadowBlur = fontSize * .18;
+        context.shadowOffsetY = fontSize * .05;
+      }
+      lines.forEach((value, index) => context.fillText(value, width / 2,
+        centerY + (index - (lines.length - 1) / 2) * lineHeight, limit));
+      return canvas;
+    }
+
+    async function showComposedPreview(image, src, width, height, revision) {
+      if (!overlayText.value.trim()) return;
+      try {
+        const canvas = await composePicture(src, width, height, pictureTextSettings());
+        if (revision === previewRenderRevision && phoneScreen.contains(image)) image.src = canvas.toDataURL("image/png");
+      } catch {
+        downloadStatus.classList.add("is-error");
+        downloadStatus.textContent = "加字預覽失敗，請重新選擇主圖。";
+      }
+    }
+
+    async function downloadPicture() {
+      downloadStatus.classList.remove("is-error");
+      if (!postImages.length) {
+        downloadStatus.classList.add("is-error");
+        downloadStatus.textContent = "請先上傳或生成一張圖。";
+        return;
+      }
+      const button = document.querySelector("#download-picture");
+      const platform = activePlatform;
+      const src = postImages[mainImageIndex].src;
+      const settings = pictureTextSettings();
+      button.disabled = true;
+      downloadStatus.textContent = "正在準備 PNG…";
+      try {
+        const choice = SIZES[downloadSize.value] || SIZES.platform;
+        const [width, height] = choice.size || PIC_SIZE[platform] || PIC_SIZE.IG;
+        await document.fonts.ready;
+        const canvas = await composePicture(src, width, height, settings);
+        const blob = await new Promise((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error("無法輸出 PNG")), "image/png"));
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const name = `${SETTINGS.brandName}_${choice.size ? choice.label : platform}_${width}x${height}`.replace(/[\\/:*?"<>|]/g, "_");
+        link.download = `${name}.png`;
+        link.href = url;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        downloadStatus.textContent = `已準備 ${width}×${height} PNG。`;
+      } catch (error) {
+        downloadStatus.classList.add("is-error");
+        downloadStatus.textContent = error.message || "無法下載圖片。";
+      } finally {
+        button.disabled = false;
+      }
     }
 
     function updatePreview() {
-      clearImageUrls();
+      const revision = ++previewRenderRevision;
       const topic = getMaterial()["貼文主題"];
       const caption = editor.value.trim() || "貼文文字預覽位置";
       phoneScreen.className = `phone-screen is-${activePlatform.toLowerCase()}`;
-      imageControls.replaceChildren();
-      imageInput.multiple = activePlatform === "IG";
-      document.querySelector("#image-upload-label").hidden = activePlatform === "LINE";
       if (activePlatform === "LINE") {
-        phoneScreen.innerHTML = '<div class="phone-status" aria-hidden="true"></div><div class="line-chat"><div class="avatar" aria-hidden="true">hm</div><div class="line-bubble"></div></div>';
+        phoneScreen.innerHTML = '<div class="phone-status" aria-hidden="true"></div><div class="line-chat"><div class="avatar" aria-hidden="true">hm</div><div class="line-messages"><div class="line-image-bubble"></div><div class="line-bubble"></div></div></div>';
         phoneScreen.querySelector(".line-bubble").textContent = caption;
+        if (postImages.length) {
+          const picture = document.createElement("img");
+          picture.className = "preview-image";
+          picture.src = postImages[mainImageIndex].src;
+          picture.alt = "LINE 貼文主圖";
+          phoneScreen.querySelector(".line-image-bubble").append(picture);
+          showComposedPreview(picture, postImages[mainImageIndex].src, ...PIC_SIZE.LINE, revision);
+        } else phoneScreen.querySelector(".line-image-bubble").remove();
         return;
       }
       const profile = '<div class="phone-profile"><div class="avatar" aria-hidden="true">hm</div><div class="handle"></div></div>';
@@ -657,51 +1051,51 @@
       phoneScreen.querySelector(".handle").textContent = activePlatform === "FB" ? `${SETTINGS.brandName} · 剛剛` : SETTINGS.accountName;
       phoneScreen.querySelector(".phone-caption").textContent = activePlatform === "IG" ? `${SETTINGS.accountName}  ${caption}` : caption;
       const artBox = phoneScreen.querySelector(".phone-art");
-      const files = platformImages[activePlatform];
-      const index = Math.min(imageIndexes[activePlatform], files.length - 1);
-      if (files.length) {
-        const image = document.createElement("img");
-        image.className = "preview-image";
-        image.alt = `${activePlatform} 貼文圖片 ${index + 1}`;
-        const url = URL.createObjectURL(files[index]);
-        imageUrls.push(url);
-        image.src = url;
-        artBox.replaceChildren(image);
+      if (postImages.length) {
+        if (activePlatform === "IG") {
+          const carousel = document.createElement("div");
+          carousel.className = "ig-carousel";
+          carousel.setAttribute("aria-label", "IG 貼文圖片，可左右滑動");
+          const orderedImages = [postImages[mainImageIndex], ...postImages.filter((_, index) => index !== mainImageIndex)];
+          orderedImages.forEach(({ src }, index) => {
+            const image = document.createElement("img");
+            image.className = "preview-image";
+            image.src = src;
+            image.alt = `IG 貼文圖片 ${index + 1} / ${orderedImages.length}`;
+            carousel.append(image);
+            if (index === 0) showComposedPreview(image, src, ...PIC_SIZE.IG, revision);
+          });
+          artBox.replaceChildren(carousel);
+          if (orderedImages.length > 1) {
+            const dots = document.createElement("div");
+            dots.className = "ig-dots";
+            dots.setAttribute("aria-label", `共 ${orderedImages.length} 張圖片`);
+            const indicators = orderedImages.map((_, index) => {
+              const dot = document.createElement("span");
+              dot.className = `ig-dot ${index === 0 ? "is-current" : ""}`.trim();
+              dots.append(dot);
+              return dot;
+            });
+            carousel.addEventListener("scroll", () => {
+              const current = Math.min(indicators.length - 1, Math.round(carousel.scrollLeft / carousel.clientWidth));
+              indicators.forEach((dot, index) => dot.classList.toggle("is-current", index === current));
+            }, { passive: true });
+            artBox.after(dots);
+          }
+        } else {
+          const image = document.createElement("img");
+          image.className = "preview-image";
+          image.alt = `${activePlatform} 貼文主圖`;
+          image.src = postImages[mainImageIndex].src;
+          artBox.replaceChildren(image);
+          showComposedPreview(image, postImages[mainImageIndex].src, ...(PIC_SIZE[activePlatform] || PIC_SIZE.IG), revision);
+        }
         artBox.style.padding = "0";
+        const [width, height] = PIC_SIZE[activePlatform] || PIC_SIZE.IG;
+        artBox.style.aspectRatio = `${width} / ${height}`;
       } else {
         artBox.textContent = topic || "貼文圖片預覽位置";
         artBox.classList.add("is-placeholder");
-      }
-      if (activePlatform === "IG" && files.length > 1) {
-        const previous = document.createElement("button");
-        const next = document.createElement("button");
-        previous.type = next.type = "button";
-        previous.textContent = "‹";
-        next.textContent = "›";
-        previous.setAttribute("aria-label", "上一張圖片");
-        next.setAttribute("aria-label", "下一張圖片");
-        previous.addEventListener("click", () => { imageIndexes.IG = (index - 1 + files.length) % files.length; updatePreview(); });
-        next.addEventListener("click", () => { imageIndexes.IG = (index + 1) % files.length; updatePreview(); });
-        const count = document.createElement("span");
-        count.textContent = `${index + 1} / ${files.length}`;
-        imageControls.append(previous, count, next);
-      }
-      if (files.length) {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.textContent = "移除目前圖片";
-        remove.addEventListener("click", async () => {
-          files.splice(index, 1);
-          imageIndexes[activePlatform] = 0;
-          updatePreview();
-          try {
-            await imageStore("put", "draft", { FB: platformImages.FB, IG: platformImages.IG });
-            imageMessage.textContent = "圖片已從草稿移除；按「💾 存檔」可更新這篇貼文。";
-          } catch {
-            imageMessage.textContent = "無法儲存圖片變更。";
-          }
-        });
-        imageControls.append(remove);
       }
     }
 
@@ -856,10 +1250,15 @@
           postId: currentPostId,
           status: currentStatus,
           helperHistory,
-          aiPreviousPosts
+          aiPreviousPosts,
+          images: postImages.map(image => image.id),
+          mainImageIndex,
+          pictureText: pictureTextSettings()
         }));
+        updateStorageUsage();
         return true;
       } catch {
+        updateStorageUsage(true);
         return false;
       }
     }
@@ -869,7 +1268,7 @@
       showFeedback(saved ? "草稿已保存在這台瀏覽器。" : "瀏覽器無法儲存草稿，請先複製文字備份。", saved ? "success" : "warning");
     }
 
-    function loadDraft() {
+    async function loadDraft() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
         if (!saved || typeof saved !== "object") return;
@@ -889,6 +1288,9 @@
         }
         activePlatform = SETTINGS.platforms.includes(saved.platform) ? saved.platform : activePlatform;
         currentPostId = typeof saved.postId === "string" ? saved.postId : null;
+        postImages = await hydrateImageIds(saved.images);
+        mainImageIndex = Number.isInteger(saved.mainImageIndex) && saved.mainImageIndex >= 0 && saved.mainImageIndex < postImages.length ? saved.mainImageIndex : 0;
+        applyPictureTextSettings(saved.pictureText);
         currentStatus = POST_STATUSES.includes(saved.status) ? saved.status : POST_STATUSES[0];
         SETTINGS.platforms.forEach(platform => {
           helperHistory[platform] = Array.isArray(saved.helperHistory?.[platform])
@@ -905,6 +1307,7 @@
         showFeedback("無法讀取先前儲存的草稿。", "warning");
       }
       updatePreview();
+      renderPictures();
       renderHelperHistory();
       updateUndoButton();
       updateProgress();
@@ -939,24 +1342,32 @@
         const material = getMaterial();
         const name = `${material["日期與時間"] || "未填日期"}＋${material["貼文主題"] || "未填主題"}`;
         const id = currentPostId || (window.crypto && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
-        await imageStore("put", id, { FB: platformImages.FB, IG: platformImages.IG });
         const record = { id, name, savedAt: new Date().toISOString(), material, posts: { ...platformPosts }, status: currentStatus,
+          images: postImages.map(image => image.id), mainImageIndex, pictureText: pictureTextSettings(),
           helperHistory: Object.fromEntries(SETTINGS.platforms.map(platform => [platform, helperHistory[platform].map(message => ({ ...message }))])),
           aiPreviousPosts: aiPreviousPosts && { ...aiPreviousPosts } };
         const index = posts.findIndex(post => post.id === id);
         if (index >= 0) posts[index] = record;
         else posts.push(record);
         localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+        updateStorageUsage();
         currentPostId = id;
         persistDraft();
         showFeedback("這篇貼文已存檔。", "success");
       } catch {
+        updateStorageUsage(true);
         showFeedback("瀏覽器無法存檔，請先複製文字備份。", "warning");
       }
     }
 
     async function openPost(record) {
       postContextRevision += 1;
+      try {
+        await migrateLegacyImages();
+        record = readSavedPosts().find(post => post.id === record.id) || record;
+      } catch {
+        showFeedback("舊圖片搬入倉庫失敗，原始存檔仍保留。", "warning");
+      }
       SETTINGS.materialFields.forEach((field, index) => {
         document.querySelector(`#material-${index + 1}`).value = typeof record.material?.[field.label] === "string" ? record.material[field.label] : "";
       });
@@ -972,13 +1383,10 @@
       aiPreviousPosts = SETTINGS.platforms.every(platform => typeof record.aiPreviousPosts?.[platform] === "string")
         ? { ...record.aiPreviousPosts } : null;
       currentPostId = record.id;
-      try {
-        await loadImages(record.id);
-        await imageStore("put", "draft", { FB: platformImages.FB, IG: platformImages.IG });
-        imageMessage.textContent = "";
-      } catch {
-        imageMessage.textContent = "無法讀取這篇貼文的圖片。";
-      }
+      try { postImages = await hydrateImageIds(record.images); }
+      catch { postImages = []; showFeedback("無法從圖片倉庫讀取這篇的圖。", "warning"); }
+      mainImageIndex = Number.isInteger(record.mainImageIndex) && record.mainImageIndex >= 0 && record.mainImageIndex < postImages.length ? record.mainImageIndex : 0;
+      applyPictureTextSettings(record.pictureText);
       currentStatus = POST_STATUSES.includes(record.status) ? record.status : POST_STATUSES[0];
       activePlatform = SETTINGS.platforms[0];
       editor.value = platformPosts[activePlatform];
@@ -988,6 +1396,7 @@
       restoreButton.classList.remove("is-visible");
       [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
       updatePreview();
+      renderPictures();
       renderHelperHistory();
       updateUndoButton();
       updateProgress();
@@ -1067,7 +1476,7 @@
             if (!window.confirm("確定嗎？")) return;
             try {
               localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(readSavedPosts().filter(post => post.id !== record.id)));
-              await imageStore("delete", record.id);
+              updateStorageUsage();
               if (currentPostId === record.id) {
                 currentPostId = null;
                 persistDraft();
@@ -1090,12 +1499,10 @@
       postContextRevision += 1;
       aiPreviousPosts = null;
       SETTINGS.platforms.forEach(platform => { helperHistory[platform] = []; });
-      clearImageUrls();
-      platformImages.FB = [];
-      platformImages.IG = [];
-      imageIndexes.FB = 0;
-      imageIndexes.IG = 0;
-      imageStore("put", "draft", { FB: [], IG: [] }).catch(() => { imageMessage.textContent = "無法清除暫存圖片。"; });
+      postImages = [];
+      mainImageIndex = 0;
+      picturePrompt.value = "";
+      applyPictureTextSettings();
       SETTINGS.materialFields.forEach((field, index) => document.querySelector(`#material-${index + 1}`).value = "");
       SETTINGS.platforms.forEach(platform => {
         platformPosts[platform] = "";
@@ -1113,6 +1520,7 @@
       restoreButton.classList.remove("is-visible");
       [...tabContainer.children].forEach(tab => tab.setAttribute("aria-selected", String(tab.textContent === activePlatform)));
       updatePreview();
+      renderPictures();
       renderHelperHistory();
       updateUndoButton();
       updateProgress();
@@ -1127,6 +1535,15 @@
     const brandSpecification = document.querySelector("#brand-specification");
     const aiApiKey = document.querySelector("#ai-api-key");
     const openrouterModel = document.querySelector("#openrouter-model");
+    const imageModel = document.querySelector("#image-model");
+    const customImageModel = document.querySelector("#custom-image-model");
+    const picturePrompt = document.querySelector("#picture-prompt");
+    const pictureSpecification = document.querySelector("#picture-specification");
+    const generatePictureButton = document.querySelector("#generate-picture");
+    const useMainReference = document.querySelector("#use-main-reference");
+    const pictureCount = document.querySelector("#picture-count");
+    const imagineAndGenerateButton = document.querySelector("#imagine-and-generate");
+    const pictureGenerationStatus = document.querySelector("#picture-generation-status");
     const customModel = document.querySelector("#custom-model");
     const reasoningEffort = document.querySelector("#reasoning-effort");
     const geminiApiKey = document.querySelector("#gemini-api-key");
@@ -1144,6 +1561,9 @@
         if (typeof saved.brandSpecification === "string") brandSpecification.value = saved.brandSpecification;
         if (typeof saved.aiApiKey === "string") aiApiKey.value = saved.aiApiKey;
         if ([...openrouterModel.options].some(option => option.value === saved.openrouterModel)) openrouterModel.value = saved.openrouterModel;
+        if ([...imageModel.options].some(option => option.value === saved.imageModel)) imageModel.value = saved.imageModel;
+        if (typeof saved.customImageModel === "string") customImageModel.value = saved.customImageModel;
+        if (typeof saved.pictureSpecification === "string") pictureSpecification.value = saved.pictureSpecification;
         if (typeof saved.customModel === "string") customModel.value = saved.customModel;
         if (["low", "medium", "high"].includes(saved.reasoningEffort)) reasoningEffort.value = saved.reasoningEffort;
         if (typeof saved.geminiApiKey === "string") geminiApiKey.value = saved.geminiApiKey;
@@ -1161,6 +1581,9 @@
           brandSpecification: brandSpecification.value,
           aiApiKey: aiApiKey.value.trim(),
           openrouterModel: openrouterModel.value,
+          imageModel: imageModel.value,
+          customImageModel: customImageModel.value.trim(),
+          pictureSpecification: pictureSpecification.value,
           customModel: customModel.value.trim(),
           reasoningEffort: reasoningEffort.value,
           geminiApiKey: geminiApiKey.value.trim(),
@@ -1260,7 +1683,7 @@
         const saved = JSON.parse(localStorage.getItem(AI_USAGE_STORAGE_KEY) || "null");
         if (saved?.date === localDateKey()) return saved;
       } catch { /* 損壞的統計資料可從零重新計算。 */ }
-      return { date: localDateKey(), openrouterCount: 0, openrouterCost: 0, geminiCount: 0 };
+      return { date: localDateKey(), openrouterCount: 0, openrouterCost: 0, geminiCount: 0, imageCount: 0, imageCost: 0 };
     }
 
     function updateDailyUsage(provider, cost) {
@@ -1271,6 +1694,146 @@
       } else if (cost === undefined) usage.geminiCount += 1;
       try { localStorage.setItem(AI_USAGE_STORAGE_KEY, JSON.stringify(usage)); } catch { /* 不讓統計失敗阻斷寫作。 */ }
       return usage;
+    }
+
+    function pictureAspectRatio(platform) {
+      const [width, height] = PIC_SIZE[platform] || PIC_SIZE.IG;
+      const divisor = (a, b) => b ? divisor(b, a % b) : a;
+      const common = divisor(width, height);
+      return `${width / common}:${height / common}`;
+    }
+
+    async function requestOnePicture(prompt, key, model, platform, referenceUrl = null) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/images", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model,
+            prompt,
+            aspect_ratio: pictureAspectRatio(platform),
+            resolution: "1K",
+            n: 1,
+            ...(referenceUrl ? { input_references: [{ type: "image_url", image_url: { url: referenceUrl } }] } : {})
+          }),
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          const messages = {
+            400: "這個模型不接受這個要求，換一個生圖模型試試",
+            401: "金鑰不對", 402: "全班的額度用完了", 404: "生圖模型名稱打錯了",
+            429: "太多人同時在用", 502: "這張沒畫完（沒有扣錢），再按一次"
+          };
+          throw new Error(messages[response.status] || `生圖服務暫時無法使用（${response.status}）`);
+        }
+        const result = await response.json();
+        const output = result?.data?.[0];
+        if (typeof output?.b64_json !== "string" || !output.b64_json || !/^image\/(png|jpeg|webp|gif)$/i.test(output.media_type || "")) {
+          throw new Error("沒有收到可用的圖片，請再按一次。");
+        }
+        const resized = await resizePicture(`data:${output.media_type};base64,${output.b64_json}`);
+        const cost = Number(result?.usage?.cost);
+        const hasCost = result?.usage?.cost != null && Number.isFinite(cost);
+        return { resized, cost, hasCost };
+      } catch (error) {
+        throw new Error(controller.signal.aborted ? "等太久" : error instanceof TypeError ? "連不到" : error.message);
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function generatePicture(promptOverride = null, thoughtStatus = "", countOverride = null, withMainReference = false) {
+      const prompt = typeof promptOverride === "string" ? promptOverride.trim() : picturePrompt.value.trim();
+      const key = aiApiKey.value.trim();
+      const revision = postContextRevision;
+      const platform = activePlatform;
+      const model = customImageModel.value.trim() || imageModel.value;
+      const count = Number(countOverride ?? pictureCount.value);
+      const total = [1, 2, 3].includes(count) ? count : 1;
+      const report = message => [thoughtStatus, `畫圖：${message}`].filter(Boolean).join("\n");
+      pictureGenerationStatus.classList.remove("is-error");
+      if (!prompt) {
+        pictureGenerationStatus.classList.add("is-error");
+        pictureGenerationStatus.textContent = report("請先填圖片描述。");
+        return;
+      }
+      if (!key) {
+        pictureGenerationStatus.classList.add("is-error");
+        pictureGenerationStatus.textContent = report("生圖要用第一組 OpenRouter 的金鑰（Gemini 的免費金鑰不能生圖）。先用 📤 上傳。");
+        return;
+      }
+      if (withMainReference && !postImages[mainImageIndex]?.src) {
+        pictureGenerationStatus.classList.add("is-error");
+        pictureGenerationStatus.textContent = report("請先選一張主圖，再用主圖當參考。");
+        return;
+      }
+      const referenceUrl = withMainReference ? postImages[mainImageIndex].src : null;
+      generatePictureButton.disabled = true;
+      pictureCount.disabled = true;
+      generatePictureButton.textContent = "🎨 畫圖中…";
+      let success = 0;
+      let batchCost = 0;
+      let costUnknown = false;
+      let usageSaved = true;
+      let warehouseSaveFailed = false;
+      let cancelled = false;
+      const failures = [];
+      try {
+        for (let index = 0; index < total; index += 1) {
+          if (postContextRevision !== revision || activePlatform !== platform) { cancelled = true; break; }
+          pictureGenerationStatus.textContent = report(`正在畫第 ${index + 1}/${total} 張…`);
+          try {
+            const result = await requestOnePicture(prompt, key, model, platform, referenceUrl);
+            const usage = dailyUsage();
+            usage.imageCount = (usage.imageCount || 0) + 1;
+            if (result.hasCost) {
+              usage.imageCost = (usage.imageCost || 0) + result.cost;
+              batchCost += result.cost;
+            } else {
+              usage.imageCostUnknown = true;
+              costUnknown = true;
+            }
+            try { localStorage.setItem(AI_USAGE_STORAGE_KEY, JSON.stringify(usage)); }
+            catch { usageSaved = false; }
+            if (postContextRevision !== revision || activePlatform !== platform) { cancelled = true; break; }
+            const [storedImage] = await storeNewImages([result.resized]);
+            if (postContextRevision !== revision || activePlatform !== platform) {
+              cancelled = true;
+              await imageWarehouse("delete", storedImage.id);
+              break;
+            }
+            const previousImages = postImages;
+            const previousMain = mainImageIndex;
+            postImages = [...postImages, storedImage];
+            mainImageIndex = postImages.length - 1;
+            if (!persistDraft()) {
+              warehouseSaveFailed = true;
+              postImages = previousImages;
+              mainImageIndex = previousMain;
+              await imageWarehouse("delete", storedImage.id);
+              throw new Error("圖片已畫好，但儲存空間不足，這張沒存到");
+            }
+            success += 1;
+            renderPictures();
+            updatePreview();
+          } catch (error) {
+            failures.push(`第 ${index + 1} 張：${error.message}`);
+          }
+        }
+        const today = dailyUsage();
+        const totalCost = costUnknown ? "費用未提供" : `約 $${batchCost.toFixed(6)}`;
+        const todayCost = today.imageCostUnknown ? "費用未提供" : `約 $${(today.imageCost || 0).toFixed(6)}`;
+        const summary = `成功 ${success}/${total} 張｜這批合計${totalCost}｜今天生了 ${today.imageCount || 0} 張 ${todayCost}`;
+        pictureGenerationStatus.textContent = report([summary, ...failures, cancelled ? "已切換貼文，停止畫後續圖片。" : "", usageSaved ? "" : "用量未存到。"].filter(Boolean).join("\n"));
+        pictureGenerationStatus.classList.toggle("is-error", Boolean(failures.length || cancelled || !usageSaved));
+        updateStorageUsage(!usageSaved || warehouseSaveFailed);
+      } finally {
+        pictureCount.disabled = false;
+        generatePictureButton.disabled = false;
+        generatePictureButton.textContent = "🎨 生圖";
+      }
     }
 
     function providerError(provider, status, apiMessage) {
@@ -1359,6 +1922,47 @@
       const cost = result.provider === "OpenRouter" && result.usage?.cost != null && Number.isFinite(Number(result.usage.cost))
         ? `約 $${Number(result.usage.cost).toFixed(6)}` : "費用未提供";
       return `這次用 ${result.provider}：${tokens} tokens ${cost}｜今天 OpenRouter ${today.openrouterCount} 次 約 $${today.openrouterCost.toFixed(6)}、Gemini ${today.geminiCount} 次`;
+    }
+
+    async function imagineAndGeneratePicture() {
+      const post = editor.value.trim();
+      pictureGenerationStatus.classList.remove("is-error");
+      if (!post) {
+        pictureGenerationStatus.classList.add("is-error");
+        pictureGenerationStatus.textContent = "先讓 AI 寫貼文";
+        return;
+      }
+      const revision = postContextRevision;
+      const platform = activePlatform;
+      const selectedCount = Number(pictureCount.value);
+      const system = `你是【${SETTINGS.brandName}】的美術指導。使用者會給你一篇社群貼文，請你寫一段給 AI 畫圖用的畫面描述。只描述畫面：主角、場景、構圖、光線、顏色、氣氛，要具體到看得到。照圖片規格寫。畫面裡不要有任何文字、字母、數字、標誌。不要畫名人，不要畫別的品牌的 logo。素材卡和貼文裡沒有的東西，不要自己加進畫面。一律用台灣的繁體中文。只回一段 80～150 字的畫面描述，不要標題、不要解釋。`;
+      const material = SETTINGS.materialFields.map(field => `${field.label}：${getMaterial()[field.label] || "（未填）"}`).join("\n");
+      const user = `圖片規格：\n${pictureSpecification.value.trim() || "（未填）"}\n\n素材卡：\n${material}\n\n目前平台：${platform}\n圖的比例：${pictureAspectRatio(platform)}\n\n目前平台的貼文：\n${post}`;
+      imagineAndGenerateButton.disabled = true;
+      imagineAndGenerateButton.textContent = "🪄 想圖中…";
+      generatePictureButton.disabled = true;
+      pictureCount.disabled = true;
+      pictureGenerationStatus.textContent = "想圖：正在整理畫面描述…";
+      try {
+        const result = await askAi([{ role: "system", content: system }, { role: "user", content: user }]);
+        const thoughtStatus = [`想圖：${usageMessage(result)}`, result.fallbackNotice].filter(Boolean).join("\n");
+        if (postContextRevision !== revision || activePlatform !== platform || editor.value.trim() !== post) {
+          pictureGenerationStatus.classList.add("is-error");
+          pictureGenerationStatus.textContent = `${thoughtStatus}\n貼文已變更，請重新按「🪄 AI 想圖再畫」。`;
+          return;
+        }
+        picturePrompt.value = result.content.trim();
+        imagineAndGenerateButton.textContent = "🪄 畫圖中…";
+        await generatePicture(`${picturePrompt.value}\n（畫面中不要出現任何文字、字母、數字或標誌。）`, thoughtStatus, selectedCount);
+      } catch (error) {
+        pictureGenerationStatus.classList.add("is-error");
+        pictureGenerationStatus.textContent = `想圖：${error.message}`;
+      } finally {
+        imagineAndGenerateButton.disabled = false;
+        imagineAndGenerateButton.textContent = "🪄 AI 想圖再畫";
+        generatePictureButton.disabled = false;
+        pictureCount.disabled = false;
+      }
     }
 
     async function writeWithAi() {
@@ -1627,18 +2231,31 @@
     imageInput.addEventListener("change", async () => {
       const files = [...imageInput.files].filter(file => file.type.startsWith("image/"));
       if (!files.length) return;
-      if (activePlatform === "FB") platformImages.FB = [files[0]];
-      if (activePlatform === "IG") platformImages.IG.push(...files);
-      imageIndexes[activePlatform] = activePlatform === "IG" ? platformImages.IG.length - files.length : 0;
       imageInput.value = "";
-      updatePreview();
       try {
-        await imageStore("put", "draft", { FB: platformImages.FB, IG: platformImages.IG });
-        imageMessage.textContent = "圖片已暫存；按「💾 存檔」可跟這篇貼文一起保存。";
+        const resized = await Promise.all(files.map(resizePicture));
+        const stored = await storeNewImages(resized);
+        const previousImages = postImages;
+        postImages = [...postImages, ...stored];
+        if (!persistDraft()) {
+          postImages = previousImages;
+          await Promise.allSettled(stored.map(image => imageWarehouse("delete", image.id)));
+        }
+        renderPictures();
+        updatePreview();
       } catch {
-        imageMessage.textContent = "無法暫存圖片，請檢查瀏覽器儲存空間。";
+        showFeedback("無法處理圖片，請確認檔案格式。", "warning");
       }
     });
+    generatePictureButton.addEventListener("click", () => generatePicture(null, "", null, useMainReference.checked));
+    imagineAndGenerateButton.addEventListener("click", imagineAndGeneratePicture);
+    document.querySelector("#picture-text-settings").addEventListener("input", () => {
+      downloadStatus.textContent = "";
+      downloadStatus.classList.remove("is-error");
+      updatePreview();
+      persistDraft();
+    });
+    document.querySelector("#download-picture").addEventListener("click", downloadPicture);
     document.querySelector("#material-fields").addEventListener("input", () => {
       invalidateCheck();
       updatePreview();
@@ -1695,9 +2312,16 @@
     document.querySelector("#close-instruction").addEventListener("click", () => instructionDialog.close());
     document.querySelector("#copy-instruction").addEventListener("click", copyInstruction);
     loadWorkspaceSettings();
-    loadDraft();
-    loadImages("draft").catch(() => { imageMessage.textContent = "無法讀取暫存圖片。"; });
-    updateProgress();
+    async function initializeStoredImages() {
+      try { await migrateLegacyImages(); }
+      catch { showFeedback("舊圖片搬入倉庫失敗，原始資料仍保留。", "warning"); }
+      await loadDraft();
+      renderPictures();
+      updatePreview();
+      updateProgress();
+      updateStorageUsage();
+    }
+    initializeStoredImages();
   </script>
 </body>
 </html>
