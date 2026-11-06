@@ -233,6 +233,19 @@
     .phone-screen.is-line .line-bubble { max-width: 100%; }
     .phone-screen.is-line .line-image-bubble { width: 100%; aspect-ratio: 1040 / 1040; margin-bottom: 8px; border-radius: 4px 14px 14px 14px; overflow: hidden; background: #fff; }
     .phone-screen.is-line .avatar { flex: none; }
+    .phone-screen.is-line { display: flex; flex-direction: column; }
+    .phone-screen.is-line .line-chat { flex: 1; min-height: 0; overflow: auto; }
+    .line-menu-bar { padding: 7px; background: white; text-align: center; font-size: .75rem; font-weight: 700; }
+    .line-menu-image { display: block; width: 100%; height: auto; }
+    .menu-dialog { width: min(900px, calc(100% - 32px)); }
+    .menu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .menu-cell { display: grid; grid-template-columns: 32px 1fr 1.5fr 1.2fr 1.5fr; align-items: end; gap: 8px; margin-top: 10px; }
+    .menu-cell label { min-width: 0; font-size: .8rem; }
+    .menu-cell input, .menu-cell select { width: 100%; padding: 8px; border: 1px solid var(--line); border-radius: 8px; }
+    .menu-cell strong { padding-bottom: 8px; }
+    .menu-preview { display: block; width: 100%; max-width: 560px; margin: 18px auto 0; border: 1px solid var(--line); }
+    .menu-error { color: #b42318; white-space: pre-line; }
+    @media (max-width: 700px) { .menu-grid { grid-template-columns: 1fr; } .menu-cell { grid-template-columns: 28px 1fr 2fr; } .menu-cell label:nth-of-type(n+3) { grid-column: 2 / -1; } }
     .preview-image { display: block; width: 100%; height: 100%; object-fit: cover; }
     .post-pictures { padding: 18px 20px; border-top: 1px solid var(--line); }
     .post-pictures h3 { margin: 0 0 12px; font-size: 1rem; }
@@ -331,6 +344,7 @@
     <div class="topbar-right">
       <p>素材卡・貼文內容・手機預覽</p>
       <button class="topbar-button" id="open-posts" type="button">📁 我的貼文</button>
+      <button class="topbar-button" id="open-menus" type="button">📋 圖文選單</button>
       <button class="topbar-button" id="new-post" type="button">＋ 新的一篇</button>
       <button class="topbar-button" id="open-settings" type="button">⚙ 設定</button>
     </div>
@@ -497,6 +511,20 @@
     <p class="dialog-message" id="posts-message" role="status" aria-live="polite"></p>
   </dialog>
 
+  <dialog class="workspace-dialog menu-dialog" id="menu-dialog" aria-labelledby="menu-heading">
+    <div class="dialog-head"><h2 id="menu-heading">📋 圖文選單</h2><button class="dialog-button" id="close-menus" type="button">關閉</button></div>
+    <div class="dialog-fields menu-grid">
+      <label for="menu-layout">版型<select id="menu-layout"></select></label>
+      <label for="menu-background">底色<select id="menu-background"><option value="brand">品牌主色</option><option value="white">白色</option><option value="image">這篇的主圖加深一點</option></select></label>
+      <label for="menu-bar-text">選單列的字<input id="menu-bar-text" maxlength="14" value="選單"></label>
+    </div>
+    <div id="menu-cells"></div>
+    <canvas class="menu-preview" id="menu-preview" aria-label="圖文選單預覽"></canvas>
+    <p class="dialog-message menu-error" id="menu-errors" role="alert"></p>
+    <div class="dialog-actions"><button class="dialog-button" id="copy-menu-table" type="button">📋 複製設定表</button><button class="dialog-button" id="download-menu" type="button">⬇ 下載選單圖</button></div>
+    <p class="dialog-message" id="menu-message" role="status" aria-live="polite"></p>
+  </dialog>
+
   <dialog class="workspace-dialog" id="instruction-dialog" aria-labelledby="instruction-heading">
     <div class="dialog-head">
       <h2 id="instruction-heading">組好的指令</h2>
@@ -530,6 +558,14 @@
   </dialog>
 
   <script>
+    const MENUS = [
+      { id: "large-6", name: "大型 6 格（上 3 下 3）", w: 2500, h: 1686, cols: 3, rows: 2 },
+      { id: "large-4", name: "大型 4 格（上 2 下 2）", w: 2500, h: 1686, cols: 2, rows: 2 },
+      { id: "large-1", name: "大型 1 格", w: 2500, h: 1686, cols: 1, rows: 1 },
+      { id: "small-3", name: "小型 3 格（左中右）", w: 2500, h: 843, cols: 3, rows: 1 },
+      { id: "small-2", name: "小型 2 格（左右）", w: 2500, h: 843, cols: 2, rows: 1 },
+      { id: "small-1", name: "小型 1 格", w: 2500, h: 843, cols: 1, rows: 1 }
+    ];
     const AI_MODEL = "deepseek/deepseek-v4.1-flash";
     const AI_MAX_TOKENS = 8000;
     const AI_TIMEOUT_MS = 120000;
@@ -1025,6 +1061,142 @@
       }
     }
 
+    const MENU_STORAGE_KEY = "hello-monday-rich-menu-v1";
+    const menuDialog = document.querySelector("#menu-dialog");
+    const menuLayout = document.querySelector("#menu-layout");
+    const menuBackground = document.querySelector("#menu-background");
+    const menuBarText = document.querySelector("#menu-bar-text");
+    const menuCells = document.querySelector("#menu-cells");
+    const menuCanvas = document.querySelector("#menu-preview");
+    const menuErrors = document.querySelector("#menu-errors");
+    const menuMessage = document.querySelector("#menu-message");
+    let menuData = { layout: MENUS[0].id, background: "brand", barText: "選單", cells: Array.from({ length: 6 }, () => ({ icon: "", label: "", action: "text", content: "" })) };
+    let menuRenderRevision = 0;
+    MENUS.forEach(menu => menuLayout.add(new Option(`${menu.name} ${menu.w}×${menu.h}`, menu.id)));
+
+    function currentMenu() { return MENUS.find(menu => menu.id === menuData.layout) || MENUS[0]; }
+    function menuCell(index) { return menuData.cells[index] || { icon: "", label: "", action: "text", content: "" }; }
+    function menuPosition(index, menu) {
+      if (menu.rows === 1) return menu.cols === 1 ? "整張" : ["左", "中", "右"][index + (menu.cols === 2 && index === 1 ? 1 : 0)];
+      return `${["左", "中", "右"][index % menu.cols + (menu.cols === 2 && index % menu.cols === 1 ? 1 : 0)]}${Math.floor(index / menu.cols) === 0 ? "上" : "下"}`;
+    }
+    function menuProblems() {
+      const cells = Array.from({ length: currentMenu().cols * currentMenu().rows }, (_, index) => menuCell(index));
+      const problems = [];
+      if (cells.every(cell => cell.action === "none")) problems.push("每一格都不設定：LINE 不允許所有區塊都沒有動作。");
+      cells.forEach((cell, index) => {
+        if (!cell.icon.trim() && !cell.label.trim()) problems.push(`${String.fromCharCode(65 + index)} 格需要文字或圖示。`);
+        if (cell.action === "url" && !cell.content.trim().startsWith("https://")) problems.push(`${String.fromCharCode(65 + index)} 格網址必須以 https:// 開頭。`);
+      });
+      if (menuData.background === "image" && !postImages.length) problems.push("這篇還沒有主圖，請先加入主圖或改用其他底色。");
+      return problems;
+    }
+    function saveMenu() {
+      try { localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuData)); }
+      catch { menuMessage.textContent = "圖文選單無法儲存在這台瀏覽器。"; menuMessage.classList.add("menu-error"); }
+    }
+    function renderMenuFields() {
+      menuLayout.value = menuData.layout;
+      menuBackground.value = menuData.background;
+      menuBarText.value = menuData.barText;
+      menuCells.replaceChildren();
+      const menu = currentMenu();
+      for (let index = 0; index < menu.cols * menu.rows; index += 1) {
+        const cell = menuCell(index);
+        const row = document.createElement("div");
+        row.className = "menu-cell";
+        const code = String.fromCharCode(65 + index);
+        row.innerHTML = `<strong>${code}</strong><label>圖示<input data-field="icon" placeholder="☕" aria-label="${code} 圖示"></label><label>格子上的字<input data-field="label" maxlength="12" aria-label="${code} 格子上的字"></label><label>按了做什麼<select data-field="action" aria-label="${code} 按了做什麼"><option value="text">送出文字</option><option value="url">開網址</option><option value="none">不設定</option></select></label><label>內容<input data-field="content" aria-label="${code} 內容" placeholder="未填則送出格子上的字"></label>`;
+        row.querySelector('[data-field="icon"]').value = cell.icon;
+        row.querySelector('[data-field="label"]').value = cell.label;
+        row.querySelector('[data-field="action"]').value = cell.action;
+        row.querySelector('[data-field="content"]').value = cell.content;
+        row.querySelectorAll("input, select").forEach(input => input.addEventListener("input", () => {
+          if (input.dataset.field === "icon" && input.value) input.value = [...new Intl.Segmenter("zh-TW", { granularity: "grapheme" }).segment(input.value)][0].segment;
+          menuData.cells[index] = { ...menuCell(index), [input.dataset.field]: input.value };
+          menuChanged();
+        }));
+        menuCells.append(row);
+      }
+    }
+    function fitMenuLines(context, label, maxWidth) {
+      const chars = Array.from(label.trim());
+      const lines = [""];
+      for (const char of chars) {
+        const last = lines.length - 1;
+        if (context.measureText(lines[last] + char).width > maxWidth && lines[last] && lines.length < 2) lines.push(char);
+        else lines[last] += char;
+      }
+      return lines;
+    }
+    async function drawMenu(canvas, width, height) {
+      const menu = currentMenu();
+      canvas.width = width; canvas.height = height;
+      const context = canvas.getContext("2d");
+      const scale = width / menu.w;
+      const cellWidth = width / menu.cols, cellHeight = height / menu.rows;
+      const brand = SETTINGS.mainColor;
+      context.fillStyle = menuData.background === "white" ? "#ffffff" : brand;
+      context.fillRect(0, 0, width, height);
+      if (menuData.background === "image" && postImages.length) {
+        const picture = new Image();
+        picture.src = postImages[mainImageIndex].src;
+        try {
+          await picture.decode();
+          const crop = Math.max(width / picture.naturalWidth, height / picture.naturalHeight);
+          const iw = picture.naturalWidth * crop, ih = picture.naturalHeight * crop;
+          context.drawImage(picture, (width - iw) / 2, (height - ih) / 2, iw, ih);
+          context.fillStyle = "rgba(0, 0, 0, .5)";
+          context.fillRect(0, 0, width, height);
+        } catch { /* 壞圖時保留品牌底色，錯誤由主圖欄位另行處理。 */ }
+      }
+      context.strokeStyle = menuData.background === "white" ? brand : "rgba(255,255,255,.75)";
+      context.lineWidth = Math.max(1, 3 * scale);
+      for (let column = 1; column < menu.cols; column += 1) { context.beginPath(); context.moveTo(column * cellWidth, 0); context.lineTo(column * cellWidth, height); context.stroke(); }
+      for (let row = 1; row < menu.rows; row += 1) { context.beginPath(); context.moveTo(0, row * cellHeight); context.lineTo(width, row * cellHeight); context.stroke(); }
+      context.fillStyle = menuData.background === "white" ? brand : "#ffffff";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      const family = getComputedStyle(document.body).fontFamily;
+      for (let index = 0; index < menu.cols * menu.rows; index += 1) {
+        const cell = menuCell(index), cx = (index % menu.cols + .5) * cellWidth, cy = (Math.floor(index / menu.cols) + .5) * cellHeight;
+        const icon = [...new Intl.Segmenter("zh-TW", { granularity: "grapheme" }).segment(cell.icon.trim())][0]?.segment || "";
+        const label = cell.label.trim();
+        const iconSize = Math.min(cellWidth * .23, cellHeight * .31);
+        const fontSize = Math.min(cellWidth * .12, cellHeight * .19);
+        context.font = `${iconSize}px ${family}`;
+        if (icon) context.fillText(icon, cx, cy - (label ? cellHeight * .12 : 0));
+        context.font = `700 ${fontSize}px ${family}`;
+        const lines = fitMenuLines(context, label, cellWidth * .82);
+        lines.forEach((line, lineIndex) => context.fillText(line, cx, cy + (icon ? cellHeight * .15 : 0) + (lineIndex - (lines.length - 1) / 2) * fontSize * 1.25, cellWidth * .82));
+      }
+    }
+    async function updateMenuPreview() {
+      const revision = ++menuRenderRevision;
+      menuErrors.textContent = menuProblems().join("\n");
+      await document.fonts.ready;
+      const menu = currentMenu();
+      const canvas = document.createElement("canvas");
+      await drawMenu(canvas, 750, Math.round(750 * menu.h / menu.w));
+      if (revision !== menuRenderRevision) return;
+      menuCanvas.width = canvas.width; menuCanvas.height = canvas.height;
+      menuCanvas.getContext("2d").drawImage(canvas, 0, 0);
+      const phoneImage = phoneScreen.querySelector(".line-menu-image");
+      if (phoneImage) phoneImage.src = canvas.toDataURL("image/jpeg", .8);
+    }
+    function menuChanged() { saveMenu(); updateMenuPreview(); if (activePlatform === "LINE") updatePreview(); }
+    function menuTable() {
+      const menu = currentMenu();
+      const lines = [`版型：${menu.name}（${menu.w}×${menu.h}）`, `選單列的字：${menuData.barText || "選單"}`];
+      for (let index = 0; index < menu.cols * menu.rows; index += 1) {
+        const cell = menuCell(index), code = String.fromCharCode(65 + index);
+        const action = cell.action === "url" ? `網址「${cell.content.trim()}」` : cell.action === "none" ? "不設定" : `文字「${cell.content.trim() || cell.label.trim()}」`;
+        lines.push(`${code}（${menuPosition(index, menu)}）${cell.icon.trim() ? cell.icon.trim() + " " : ""}${cell.label.trim()} → ${action}`);
+      }
+      return lines.join("\n");
+    }
+    function menuBlob(canvas, quality) { return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", quality)); }
+
     function updatePreview() {
       const revision = ++previewRenderRevision;
       const topic = getMaterial()["貼文主題"];
@@ -1041,6 +1213,11 @@
           phoneScreen.querySelector(".line-image-bubble").append(picture);
           showComposedPreview(picture, postImages[mainImageIndex].src, ...PIC_SIZE.LINE, revision);
         } else phoneScreen.querySelector(".line-image-bubble").remove();
+        const menuArea = document.createElement("div");
+        menuArea.innerHTML = '<div class="line-menu-bar"></div><img class="line-menu-image" alt="圖文選單預覽">';
+        menuArea.querySelector(".line-menu-bar").textContent = `${menuData.barText || "選單"} ▾`;
+        phoneScreen.append(...menuArea.children);
+        updateMenuPreview();
         return;
       }
       const profile = '<div class="phone-profile"><div class="avatar" aria-hidden="true">hm</div><div class="handle"></div></div>';
@@ -2302,6 +2479,59 @@
       persistDraft();
     });
     document.querySelector("#open-settings").addEventListener("click", () => settingsDialog.showModal());
+    try {
+      const savedMenu = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || "null");
+      if (savedMenu && MENUS.some(menu => menu.id === savedMenu.layout)) {
+        menuData = {
+          layout: savedMenu.layout,
+          background: ["brand", "white", "image"].includes(savedMenu.background) ? savedMenu.background : "brand",
+          barText: typeof savedMenu.barText === "string" ? savedMenu.barText.slice(0, 14) : "選單",
+          cells: Array.isArray(savedMenu.cells) ? savedMenu.cells.map(cell => ({
+            icon: String(cell?.icon || ""), label: String(cell?.label || "").slice(0, 12),
+            action: ["text", "url", "none"].includes(cell?.action) ? cell.action : "text",
+            content: String(cell?.content || "")
+          })) : menuData.cells
+        };
+      }
+    } catch { menuMessage.textContent = "無法讀取先前儲存的圖文選單。"; }
+    renderMenuFields();
+    document.querySelector("#open-menus").addEventListener("click", () => { menuDialog.showModal(); updateMenuPreview(); });
+    document.querySelector("#close-menus").addEventListener("click", () => menuDialog.close());
+    menuLayout.addEventListener("change", () => { menuData.layout = menuLayout.value; renderMenuFields(); menuChanged(); });
+    menuBackground.addEventListener("change", () => { menuData.background = menuBackground.value; menuChanged(); });
+    menuBarText.addEventListener("input", () => { menuData.barText = menuBarText.value; menuChanged(); });
+    document.querySelector("#copy-menu-table").addEventListener("click", async () => {
+      const problems = menuProblems();
+      if (problems.length) { menuErrors.textContent = problems.join("\n"); menuMessage.textContent = "請先修正紅字提醒。"; return; }
+      try { await navigator.clipboard.writeText(menuTable()); menuMessage.textContent = "設定表已複製。"; }
+      catch { menuMessage.textContent = "無法複製設定表，請檢查瀏覽器剪貼簿權限。"; }
+    });
+    document.querySelector("#download-menu").addEventListener("click", async () => {
+      const problems = menuProblems();
+      if (problems.length) { menuErrors.textContent = problems.join("\n"); menuMessage.textContent = "請先修正紅字提醒。"; return; }
+      const button = document.querySelector("#download-menu");
+      button.disabled = true;
+      menuMessage.textContent = "正在製作選單圖…";
+      try {
+        await document.fonts.ready;
+        const menu = currentMenu(), canvas = document.createElement("canvas");
+        await drawMenu(canvas, menu.w, menu.h);
+        let blob;
+        for (const quality of [.92, .85, .78, .7, .6, .5]) {
+          blob = await menuBlob(canvas, quality);
+          if (!blob) throw new Error("無法輸出 JPEG。");
+          if (blob.size <= 1000000) break;
+        }
+        if (blob.size > 1000000) throw new Error("即使降低品質，檔案仍超過 1 MB；請換用較簡單的主圖或純色底。");
+        const url = URL.createObjectURL(blob), link = document.createElement("a");
+        link.href = url;
+        link.download = `${SETTINGS.brandName}_圖文選單_${menu.w}x${menu.h}.jpg`.replace(/[\\/:*?"<>|]/g, "_");
+        document.body.append(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        menuMessage.textContent = `下載好了：${menu.w}×${menu.h}，${(blob.size / 1000000).toFixed(2)} MB`;
+      } catch (error) { menuMessage.textContent = error.message || "無法下載選單圖。"; }
+      finally { button.disabled = false; }
+    });
     document.querySelector("#close-settings").addEventListener("click", () => settingsDialog.close());
     document.querySelector("#save-settings").addEventListener("click", saveWorkspaceSettings);
     document.querySelector("#build-instruction").addEventListener("click", () => buildInstruction());
