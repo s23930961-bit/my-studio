@@ -46,6 +46,7 @@
     }
     .topbar h1 { margin: 0; font-size: clamp(1.25rem, 2vw, 1.75rem); letter-spacing: .02em; }
     .topbar p { margin: 0; color: var(--ink); font-size: .86rem; }
+    #auto-save-status { color: var(--ink); font-size: .75rem; white-space: nowrap; }
     .topbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .topbar-button, .material-button, .dialog-button {
       padding: 9px 14px;
@@ -348,6 +349,7 @@
       <button class="topbar-button" id="new-post" type="button">＋ 新的一篇</button>
       <button class="topbar-button" id="open-settings" type="button">⚙ 設定</button>
       <button class="topbar-button" id="open-auth" type="button">🔐 登入</button>
+      <small id="auto-save-status" role="status" aria-live="polite"></small>
     </div>
   </header>
 
@@ -580,7 +582,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // 這兩個可以公開，守門的是 Supabase 的 RLS；sb_secret_ 開頭的絕對不要貼。
+    // 這兩個可以公開，守門的是 Supabase 的 RLS。
     const SB_URL = 'https://odufdtqmkycjojrdnrpw.supabase.co';
     const SB_KEY = 'sb_publishable_7Xh2GfXbP-dnSu6AXrUqSQ_poBA4vPi';
     let me = null;
@@ -805,6 +807,39 @@
     let reviewContextRevision = 0;
     let currentStatus = POST_STATUSES[0];
     const cur = { publishDate: '' };
+    const autoSaveStatus = document.querySelector('#auto-save-status');
+    let autoSaveTimer = null;
+    let autoSaveDirty = false;
+    let autoSaveInFlight = false;
+
+    function clearAutoSave() {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+      autoSaveDirty = false;
+    }
+
+    function scheduleAutoSave() {
+      autoSaveDirty = true;
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(runAutoSave, 5000);
+    }
+
+    async function runAutoSave() {
+      autoSaveTimer = null;
+      if (!autoSaveDirty) return;
+      if (document.querySelector('#write-with-ai').disabled || document.querySelector('#helper-send').disabled || document.querySelector('#apply-review-replies').disabled || autoSaveInFlight) return;
+      autoSaveDirty = false;
+      autoSaveInFlight = true;
+      try {
+        if (await savePost()) {
+          const time = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Taipei' });
+          autoSaveStatus.textContent = `已自動存檔 ${time}`;
+        }
+      } finally {
+        autoSaveInFlight = false;
+        if (autoSaveDirty) scheduleAutoSave();
+      }
+    }
 
     function getMaterial() {
       return Object.fromEntries(SETTINGS.materialFields.map((field, index) => [
@@ -857,6 +892,7 @@
       updatePreview();
       persistDraft();
       persistAiPostState();
+      scheduleAutoSave();
       showFeedback("已切換貼文版本；再按一次可換回來。", "success");
     }
 
@@ -1006,6 +1042,7 @@
           const previous = mainImageIndex;
           mainImageIndex = index;
           if (!persistDraft()) mainImageIndex = previous;
+          else scheduleAutoSave();
           renderPictures();
           updatePreview();
         });
@@ -1021,12 +1058,33 @@
           mainImageIndex = postImages.length ? Math.min(index < previousIndex ? previousIndex - 1 : previousIndex, postImages.length - 1) : 0;
           if (!persistDraft()) { postImages = previousImages; mainImageIndex = previousIndex; }
           else {
+            scheduleAutoSave();
+            let savedPosts = null;
             try {
-              const savedPosts = readSavedPosts();
+              savedPosts = readSavedPosts();
               const inSavedPost = savedPosts.some(post => Array.isArray(post.images) && post.images.some(image => (typeof image === 'string' ? image : image?.id) === id || image === src));
               if (!inSavedPost) await imageWarehouse("delete", id);
             } catch {
               showFeedback("圖片已從這篇移除，但倉庫清理失敗。", "warning");
+            }
+            if (sb && me && url && savedPosts) {
+              const usedElsewhere = savedPosts.some(post => post.id !== currentPostId && Array.isArray(post.images) && post.images.some(image =>
+                (typeof image === 'string' ? image : image?.id) === id || image?.url === url));
+              if (!usedElsewhere) {
+                try {
+                  const filename = decodeURIComponent(new URL(url).pathname.split('/').pop());
+                  if (!filename) throw new Error('圖片網址沒有檔名');
+                  const { error } = await sb.storage.from('images').remove([`${me.id}/${filename}`]);
+                  if (error) throw error;
+                } catch (error) {
+                  const reason = /bucket not found/i.test(error?.message || '')
+                    ? '雲端還沒有 images 桶子，到 SQL Editor 貼圖片那段按 Run'
+                    : /row-level security|permission|not authorized|403/i.test(error?.message || '')
+                      ? '雲端不讓你刪圖，請檢查 SQL 的圖片權限'
+                      : (error?.message || '雲端刪圖失敗');
+                  showFeedback(`雲端圖片刪除失敗：${reason}；這台的圖片已移除。`, 'warning');
+                }
+              }
             }
           }
           renderPictures();
@@ -1509,6 +1567,7 @@
       updatePreview();
       showFeedback(isRegeneration ? "已產生另一版；可按「還原上一版」取回原文。" : "草稿已產生，請確認內容並自行調整。", "success");
       persistDraft();
+      scheduleAutoSave();
     }
 
     function sensitiveFragments(value) {
@@ -1855,13 +1914,16 @@
             cloudStatus.classList.add('is-error');
           }
         }
+        return true;
       } catch {
         updateStorageUsage(true);
         showFeedback("瀏覽器無法存檔，請先複製文字備份。", "warning");
+        return false;
       }
     }
 
     async function openPost(record) {
+      clearAutoSave();
       postContextRevision += 1;
       try {
         await migrateLegacyImages();
@@ -2010,6 +2072,7 @@
     }
 
     function newPost() {
+      clearAutoSave();
       postContextRevision += 1;
       aiPreviousPosts = null;
       SETTINGS.platforms.forEach(platform => { helperHistory[platform] = []; });
@@ -2185,6 +2248,7 @@
       updateProgress();
       persistDraft();
       if (fromAi) persistAiPostState();
+      scheduleAutoSave();
       materialStatus.textContent = sections["要問我的"] ? `【要問我的】\n${sections["要問我的"]}` : "已將貼文放入 FB、IG、LINE 分頁。";
     }
 
@@ -2334,6 +2398,7 @@
             }
             success += 1;
             renderPictures();
+            scheduleAutoSave();
             updatePreview();
           } catch (error) {
             failures.push(`第 ${index + 1} 張：${error.message}`);
@@ -2506,6 +2571,7 @@
       } finally {
         button.disabled = false;
         button.textContent = "✨ 讓 AI 寫";
+        if (autoSaveDirty) scheduleAutoSave();
       }
     }
 
@@ -2558,6 +2624,7 @@
         helperHistory[platform] = helperHistory[platform].slice(-8);
         renderHelperHistory();
         persistDraft();
+        scheduleAutoSave();
         const savedWithPost = persistAiPostState();
         document.querySelector("#helper-input").value = "";
         status.textContent = [result.fallbackNotice, result.truncated ? "回覆可能被切掉了" : "", `已更新 ${platform} 貼文。${usageMessage(result)}`, savedWithPost ? "" : "無法同步到存檔；草稿已暫存。"].filter(Boolean).join("\n");
@@ -2566,6 +2633,7 @@
         status.textContent = error.message;
       } finally {
         controls.forEach(button => { button.disabled = false; });
+        if (autoSaveDirty) scheduleAutoSave();
       }
     }
 
@@ -2682,6 +2750,7 @@
         updatePreview();
         updateProgress();
         persistDraft();
+        scheduleAutoSave();
         const savedWithPost = persistAiPostState();
         document.querySelector("#review-dialog").close();
         document.querySelector("#review-status").textContent = [result.fallbackNotice, result.truncated ? "回覆可能被切掉了" : "", `已更新 ${targets.join("、")} 貼文。${usageMessage(result)}`, savedWithPost ? "" : "無法同步到存檔；草稿已暫存。"].filter(Boolean).join("\n");
@@ -2690,6 +2759,7 @@
         status.textContent = error.message;
       } finally {
         button.disabled = false;
+        if (autoSaveDirty) scheduleAutoSave();
       }
     }
 
@@ -2760,6 +2830,7 @@
         }
         renderPictures();
         updatePreview();
+        if (postImages.length > previousImages.length) scheduleAutoSave();
       } catch {
         showFeedback("無法處理圖片，請確認檔案格式。", "warning");
       }
@@ -2771,6 +2842,7 @@
       downloadStatus.classList.remove("is-error");
       updatePreview();
       persistDraft();
+      scheduleAutoSave();
     });
     document.querySelector("#download-picture").addEventListener("click", downloadPicture);
     document.querySelector("#material-fields").addEventListener("input", () => {
@@ -2778,17 +2850,19 @@
       invalidateCheck();
       updatePreview();
       persistDraft();
+      scheduleAutoSave();
     });
     editor.addEventListener("input", () => {
       platformPosts[activePlatform] = editor.value;
       invalidateCheck();
       updatePreview();
       persistDraft();
+      scheduleAutoSave();
     });
     document.querySelector("#generate-draft").addEventListener("click", () => generateDraft(false));
     document.querySelector("#regenerate-draft").addEventListener("click", () => generateDraft(true));
     document.querySelector("#save-draft").addEventListener("click", saveDraft);
-    document.querySelector("#save-post").addEventListener("click", savePost);
+    document.querySelector("#save-post").addEventListener("click", () => { clearAutoSave(); void savePost(); });
     document.querySelector("#open-posts").addEventListener("click", () => {
       renderSavedPosts();
       document.querySelector("#posts-dialog").showModal();
@@ -2820,6 +2894,7 @@
       updatePreview();
       showFeedback("已還原上一版草稿。", "success");
       persistDraft();
+      scheduleAutoSave();
     });
     document.querySelector("#open-settings").addEventListener("click", () => settingsDialog.showModal());
     try {
