@@ -783,7 +783,7 @@
       element.textContent = option.size ? `${option.label} ${option.size[0]}×${option.size[1]}` : option.label;
       downloadSize.append(element);
     });
-    let postImages = []; // 畫面用 { id, src }；localStorage 只保存 id。
+    let postImages = []; // 畫面用 { id, src, url }；存檔保留 id 與雲端 url。
     let mainImageIndex = 0;
     let previewRenderRevision = 0;
     let storageFailed = false;
@@ -903,12 +903,35 @@
       }
     }
 
-    async function hydrateImageIds(ids) {
-      if (!Array.isArray(ids)) return [];
-      const entries = await Promise.all(ids.filter(id => typeof id === "string").map(async id => ({
-        id, src: id.startsWith("data:image/") ? id : await imageWarehouse("get", id)
-      })));
-      return entries.filter(image => typeof image.src === "string" && image.src.startsWith("data:image/"));
+    function savedImage(image) {
+      return typeof image === 'string' ? { id: image } : { id: image.id, ...(image.url ? { url: image.url } : {}) };
+    }
+
+    function blobAsDataUrl(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    async function hydrateImageIds(images) {
+      if (!Array.isArray(images)) return [];
+      return (await Promise.all(images.map(async entry => {
+        const image = savedImage(entry);
+        if (typeof image.id !== 'string') return null;
+        let src = image.id.startsWith('data:image/') ? image.id : await imageWarehouse('get', image.id);
+        if (!src && image.url) {
+          try {
+            const response = await fetch(image.url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            src = await blobAsDataUrl(await response.blob());
+            await imageWarehouse('put', image.id, src);
+          } catch { src = image.url; }
+        }
+        return src ? { ...image, src } : null;
+      }))).filter(Boolean);
     }
 
     async function migrateLegacyImages() {
@@ -968,7 +991,7 @@
 
     function renderPictures() {
       imageThumbs.replaceChildren();
-      postImages.forEach(({ id, src }, index) => {
+      postImages.forEach(({ id, src, url }, index) => {
         const wrapper = document.createElement("div");
         wrapper.className = `picture-thumb ${index === mainImageIndex ? "is-main" : ""}`.trim();
         const select = document.createElement("button");
@@ -976,7 +999,7 @@
         select.setAttribute("aria-label", `選第 ${index + 1} 張當主圖`);
         select.setAttribute("aria-pressed", String(index === mainImageIndex));
         const image = document.createElement("img");
-        image.src = src;
+        image.src = src || url;
         image.alt = `第 ${index + 1} 張圖`;
         select.append(image);
         select.addEventListener("click", () => {
@@ -1000,7 +1023,7 @@
           else {
             try {
               const savedPosts = readSavedPosts();
-              const inSavedPost = savedPosts.some(post => Array.isArray(post.images) && (post.images.includes(id) || post.images.includes(src)));
+              const inSavedPost = savedPosts.some(post => Array.isArray(post.images) && post.images.some(image => (typeof image === 'string' ? image : image?.id) === id || image === src));
               if (!inSavedPost) await imageWarehouse("delete", id);
             } catch {
               showFeedback("圖片已從這篇移除，但倉庫清理失敗。", "warning");
@@ -1557,7 +1580,7 @@
           status: currentStatus,
           helperHistory,
           aiPreviousPosts,
-          images: postImages.map(image => image.id),
+          images: postImages.map(savedImage),
           mainImageIndex,
           pictureText: pictureTextSettings()
         }));
@@ -1647,6 +1670,43 @@
       return error?.message || '雲端操作失敗';
     }
 
+    function imageUploadError(error) {
+      if (/bucket not found/i.test(error?.message || error?.error || '')) return new Error('雲端還沒有 images 桶子，到 SQL Editor 貼圖片那段按 Run');
+      if (/row-level security/i.test(error?.message || '')) return new Error('雲端不讓你傳圖，SQL 的圖片權限那段沒跑到');
+      return error;
+    }
+
+    async function uploadRecordImages(record) {
+      let uploaded = 0;
+      record.images = (record.images || []).map(savedImage);
+      for (const image of record.images) {
+        if (image.url) continue;
+        const live = currentPostId === record.id ? postImages.find(item => item.id === image.id) : null;
+        const src = live?.src || (image.id.startsWith('data:image/') ? image.id : await imageWarehouse('get', image.id));
+        if (!src?.startsWith('data:image/')) throw new Error(`找不到圖片 ${image.id}，請在原本裝置重新加入圖片`);
+        const blob = await (await fetch(src)).blob();
+        const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[blob.type];
+        if (!extension) throw new Error(`不支援的圖片格式：${blob.type || '未知'}`);
+        const path = `${me.id}/${image.id}.${extension}`;
+        const { error } = await sb.storage.from('images').upload(path, blob, { upsert: true, contentType: blob.type });
+        if (error) throw imageUploadError(error);
+        const { data } = sb.storage.from('images').getPublicUrl(path);
+        if (!data?.publicUrl) throw new Error('無法取得圖片網址');
+        image.url = data.publicUrl;
+        if (live) live.url = image.url;
+        uploaded += 1;
+        record.savedAt = Date.now();
+        const posts = readSavedPosts();
+        const index = posts.findIndex(post => post.id === record.id);
+        if (index >= 0) {
+          posts[index] = record;
+          localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+        }
+        if (live) persistDraft();
+      }
+      return uploaded;
+    }
+
     async function uploadAllPosts() {
       const message = document.querySelector('#posts-message');
       if (!sb || !me) { message.textContent = '先 🔐 登入'; return; }
@@ -1655,6 +1715,7 @@
         for (let index = 0; index < posts.length; index += 1) {
           const record = posts[index];
           try {
+            await uploadRecordImages(record);
             const { error } = await sb.from('posts').upsert({
               id: String(record.id), user_id: me.id, data: record,
               publish_date: record.publishDate || null, updated_at: new Date().toISOString()
@@ -1762,7 +1823,7 @@
         const name = `${material["日期與時間"] || "未填日期"}＋${material["貼文主題"] || "未填主題"}`;
         const id = currentPostId || (window.crypto && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
         const record = { id, name, savedAt: Date.now(), publishDate: cur.publishDate, material, posts: { ...platformPosts }, status: currentStatus,
-          images: postImages.map(image => image.id), mainImageIndex, pictureText: pictureTextSettings(),
+          images: postImages.map(savedImage), mainImageIndex, pictureText: pictureTextSettings(),
           helperHistory: Object.fromEntries(SETTINGS.platforms.map(platform => [platform, helperHistory[platform].map(message => ({ ...message }))])),
           aiPreviousPosts: aiPreviousPosts && { ...aiPreviousPosts } };
         const index = posts.findIndex(post => post.id === id);
@@ -1780,19 +1841,16 @@
         } else {
           cloudStatus.textContent = '雲端存檔中…';
           try {
+            const uploaded = await uploadRecordImages(record);
             const { error } = await sb.from('posts').upsert({
               id: String(record.id), user_id: me.id, data: record,
               publish_date: record.publishDate || null, updated_at: new Date().toISOString()
             }, { onConflict: 'user_id,id' });
             if (error) throw error;
-            cloudStatus.textContent = `☁ 雲端也存了：${name}`;
+            cloudStatus.textContent = `☁ 雲端也存了：${name}（傳了 ${uploaded} 張圖）`;
             cloudPostIds.add(String(record.id));
           } catch (error) {
-            const message = error.code === '42P01' || error.code === 'PGRST205'
-              ? '雲端還沒有 posts 表，到 SQL Editor 貼建表那段按 Run'
-              : error.code === '42501' || /row-level security/i.test(error.message || '')
-                ? '雲端不讓你存，SQL 的權限那段沒跑到'
-                : (error.message || '雲端存檔失敗');
+            const message = cloudPostError(error);
             cloudStatus.textContent = `${message}。這台電腦有存到，不會不見`;
             cloudStatus.classList.add('is-error');
           }
